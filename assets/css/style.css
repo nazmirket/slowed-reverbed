@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#__nuxt {
+	@apply h-full;
+	background-color: white;
+	color: rgb(54, 64, 87);
+}
