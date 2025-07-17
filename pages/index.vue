@@ -81,10 +81,7 @@
 		</div>
 
 		<div v-if="isConverted">
-			<a
-				href=""
-				class="border p-8 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
-			>
+			<a href="" class="cursor-pointer hover:scale-[103%] transition-all duration-200">
 				<img class="w-6 h-6" src="/reload.svg" alt="" />
 			</a>
 		</div>
