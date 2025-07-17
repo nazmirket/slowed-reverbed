@@ -9,7 +9,7 @@
 			</span>
 			<div class="flex flex-col justify-center items-center">
 				<span class="text-2xl font-900">Better when</span>
-				<span class="text-lg" style="letter-spacing: 9px"> slowed and reverb </span>
+				<span class="text-lg" style="letter-spacing: 9px"> slowed and reverbed </span>
 			</div>
 		</div>
 
@@ -120,16 +120,21 @@ const playbackRate = computed(() => {
 	return (100 - rate.value) / 100
 })
 
-function convert() {
+async function convert() {
 	isLoading.value = true
 	try {
-		audio = new Player({ url: URL.createObjectURL(file.value) }).toDestination()
+		audio = new Player().toDestination()
+
+		// Wait for the audio to load
+		await audio.load(URL.createObjectURL(file.value))
+
 		audio.playbackRate = playbackRate.value
 		const filter = new Reverb({
 			decay: 10,
 			wet: reverb.value / 10,
 		}).toDestination()
 		audio.connect(filter)
+
 		isConverted.value = true
 	} catch (error) {}
 	isLoading.value = false

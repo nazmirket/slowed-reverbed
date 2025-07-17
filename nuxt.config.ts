@@ -4,7 +4,7 @@ import eslint from 'vite-plugin-eslint'
 export default defineNuxtConfig({
 	app: {
 		head: {
-			title: 'Slowed and Reverb Maker',
+			title: 'Slowed and Reverbed Maker',
 			meta: [
 				{
 					charset: 'utf-8',
