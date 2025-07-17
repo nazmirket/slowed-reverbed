@@ -17,7 +17,7 @@
 			<input ref="FileInput" type="file" class="hidden" />
 			<a
 				v-if="!file"
-				class="bg-purple-600 text-white px-8 py-3 rounded-full"
+				class="bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
 				@click.prevent=";(FileInput as any).click()"
 			>
 				<span> Select a File </span>
@@ -52,7 +52,7 @@
 				/>
 			</div>
 			<button
-				class="bg-purple-600 text-white px-8 py-3 rounded-full"
+				class="bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
 				:disabled="!file"
 				@click="convert"
 			>
@@ -63,7 +63,7 @@
 		<div v-if="isConverted" class="flex">
 			<a
 				:class="{ 'play-effect': onPlay }"
-				class="border p-8 rounded-full cursor-pointer"
+				class="border p-8 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
 				@click="play"
 			>
 				<img v-if="!onPlay" class="w-6 h-6" src="/play.svg" alt="" />
@@ -73,7 +73,7 @@
 
 		<div v-if="isConverted">
 			<a
-				class="bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer"
+				class="bg-purple-600 text-white px-8 py-3 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
 				@click="download"
 			>
 				Download
@@ -81,7 +81,10 @@
 		</div>
 
 		<div v-if="isConverted">
-			<a href="">
+			<a
+				href=""
+				class="border p-8 rounded-full cursor-pointer hover:scale-[103%] transition-all duration-200"
+			>
 				<img class="w-6 h-6" src="/reload.svg" alt="" />
 			</a>
 		</div>
