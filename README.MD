@@ -4,8 +4,6 @@
 
 This library generates slowed and reverbed versions of songs using tonejs library. All the operations are done in the browser, so no server is required.
 
-[Live Demo](https://qr.mirket.dev/)
-
 ## Live Demo
 
 You can try out the live demo: [https://sr.mirket.dev/](https://sr.mirket.dev)
