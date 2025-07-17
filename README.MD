@@ -1,6 +1,6 @@
 # Slowed & Reverbed Song Generator
 
-![Logo](public/favicon.png){width="100" height="100"}
+[<img src="public/favicon.png" alt="Slowed & Reverbed Song Generator" width="72">](https://sr.mirket.dev/)
 
 This library generates slowed and reverbed versions of songs using tonejs library. All the operations are done in the browser, so no server is required.
 
