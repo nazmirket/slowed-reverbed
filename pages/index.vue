@@ -88,7 +88,7 @@
 
 		<div>
 			Made by
-			<a href="https://twitter.com/nazmirket" class="text-indigo-600">@nazmirket</a>
+			<a href="https://github.com/nazmirket" class="text-indigo-600">@nazmirket</a>
 		</div>
 	</div>
 </template>
