@@ -1,9 +1,12 @@
+import tailwindcss from '@tailwindcss/vite'
 import { defineNuxtConfig } from 'nuxt/config'
-import eslint from 'vite-plugin-eslint'
 
 export default defineNuxtConfig({
 	app: {
 		head: {
+			htmlAttrs: {
+				lang: 'en',
+			},
 			title: 'Slowed and Reverbed Maker',
 			meta: [
 				{
@@ -14,9 +17,9 @@ export default defineNuxtConfig({
 					content: 'width=device-width, initial-scale=1',
 				},
 				{
-					hid: 'description',
 					name: 'description',
-					content: 'Slowed and Reverbed Maker',
+					content:
+						'Create slowed and reverbed versions of your audio privately in the browser.',
 				},
 			],
 			link: [
@@ -29,9 +32,7 @@ export default defineNuxtConfig({
 		},
 	},
 
-	build: {},
-
-	modules: ['@nuxtjs/tailwindcss'],
+	css: ['~/assets/css/style.css'],
 
 	ssr: false,
 
@@ -39,19 +40,7 @@ export default defineNuxtConfig({
 		port: 9333,
 	},
 
-	typescript: {
-		tsConfig: {
-			include: ['~/types'],
-		},
-	},
-
 	vite: {
-		plugins: [eslint()],
-	},
-
-	tailwindcss: {
-		cssPath: '~/assets/css/style.css',
-		configPath: 'tailwind.config.js',
-		injectPosition: 'first',
+		plugins: [tailwindcss()],
 	},
 })

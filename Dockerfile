@@ -1,30 +1,34 @@
-FROM node:20-alpine AS build
+# syntax=docker/dockerfile:1
 
-ENV PNPM_HOME=/pnpm
-ENV PATH=$PNPM_HOME:$PATH
-WORKDIR /app
+FROM node:24.18.0-alpine AS build
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
 
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
-
-COPY . .
-RUN pnpm build
-
-FROM node:20-alpine AS runtime
-
-ENV HOST=0.0.0.0
-ENV NODE_ENV=production
-ENV PORT=3000
 WORKDIR /app
 
-COPY --from=build --chown=node:node /app/.output ./.output
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+	pnpm install --frozen-lockfile
 
-USER node
+COPY . .
+
+RUN pnpm check && pnpm generate
+
+FROM nginx:1.30.4-alpine AS production
+
+RUN rm -f /etc/nginx/conf.d/default.conf
+
+COPY docker/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build --chown=nginx:nginx /app/.output/public /usr/share/nginx/html
+
+USER nginx
+
 EXPOSE 3000
 
-HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=4 \
-	CMD wget --quiet --spider http://127.0.0.1:3000/ || exit 1
+HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
+	CMD wget --quiet --spider http://127.0.0.1:3000/healthz || exit 1
 
-CMD ["node", ".output/server/index.mjs"]
+CMD ["nginx", "-g", "daemon off;"]
