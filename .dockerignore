@@ -1,9 +1,0 @@
-.git
-.gitignore
-.nuxt
-.output
-coverage
-node_modules
-pnpm-debug.log
-*.log*
-.DS_Store

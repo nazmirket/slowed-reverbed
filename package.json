@@ -1,67 +1,33 @@
 {
 	"name": "slowed-reverbed",
 	"private": true,
-	"packageManager": "pnpm@10.33.0",
-	"engines": {
-		"node": ">=22 <25"
-	},
 	"scripts": {
-		"audit": "pnpm audit --audit-level high",
 		"build": "nuxt build",
-		"check": "pnpm lint && pnpm typecheck && pnpm test",
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
-		"lint": "eslint nuxt.config.ts eslint.config.mjs utils",
-		"postinstall": "nuxt prepare",
-		"preview": "node .output/server/index.mjs",
-		"test": "vitest run",
-		"typecheck": "nuxt typecheck"
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare"
 	},
 	"devDependencies": {
-		"@eslint/js": "10.0.1",
-		"@tailwindcss/vite": "4.3.3",
-		"@types/audiobuffer-to-wav": "1.0.4",
-		"eslint": "10.8.0",
-		"eslint-config-prettier": "10.1.8",
-		"eslint-plugin-vue": "10.10.0",
-		"globals": "17.8.0",
-		"nuxt": "3.21.10",
-		"prettier": "3.9.6",
-		"tailwindcss": "4.3.3",
-		"typescript": "5.8.3",
-		"typescript-eslint": "8.65.0",
-		"vitest": "4.1.10",
-		"vue-eslint-parser": "10.4.1",
-		"vue-tsc": "3.3.9"
+		"@nuxtjs/tailwindcss": "^6.6.5",
+		"@tailwindcss/forms": "^0.5.3",
+		"@types/audiobuffer-to-wav": "^1.0.2",
+		"@typescript-eslint/eslint-plugin": "^5.57.0",
+		"@typescript-eslint/parser": "^5.57.0",
+		"daisyui": "^3.1.0",
+		"eslint": "^8.37.0",
+		"eslint-config-prettier": "^8.8.0",
+		"eslint-plugin-nuxt": "^4.0.0",
+		"eslint-plugin-prettier": "^4.2.1",
+		"eslint-plugin-vue": "^9.10.0",
+		"nuxt": "^3.3.3",
+		"prettier": "^2.8.7",
+		"tailwindcss": "^3.3.1",
+		"vite-plugin-eslint": "^1.8.1"
 	},
 	"dependencies": {
-		"audiobuffer-to-wav": "1.0.0",
-		"tone": "14.9.17"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"@parcel/watcher",
-			"esbuild"
-		],
-		"overrides": {
-			"brace-expansion": "5.0.9",
-			"flatted@<3.4.4": "3.4.4",
-			"glob@>=10.2.0 <10.5.0": "10.5.0",
-			"lodash@>=4.0.0 <4.18.1": "4.18.1",
-			"lodash-es@>=4.0.0 <4.18.1": "4.18.1",
-			"minimatch@>=5.0.0 <5.1.8": "5.1.8",
-			"minimatch@>=9.0.0 <9.0.7": "9.0.7",
-			"picomatch@>=2.0.0 <2.3.2": "2.3.2",
-			"picomatch@>=4.0.0 <4.0.5": "4.0.5",
-			"qs@>=6.0.0 <6.15.3": "6.15.3",
-			"rollup@>=4.0.0 <4.62.3": "4.62.3",
-			"tar@>=7.0.0 <7.5.22": "7.5.22",
-			"uuid@>=11.0.0 <11.1.1": "11.1.1"
-		},
-		"peerDependencyRules": {
-			"allowedVersions": {
-				"@nuxt/schema": "3.21.10"
-			}
-		}
+		"audiobuffer-to-wav": "^1.0.0",
+		"tone": "^14.7.77",
+		"web-audio-daw": "^4.13.2"
 	}
 }

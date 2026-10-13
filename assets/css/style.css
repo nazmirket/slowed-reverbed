@@ -1,9 +1,11 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 html,
 body,
 #__nuxt {
-	min-height: 100%;
+	@apply h-full;
 	background-color: white;
 	color: rgb(54, 64, 87);
 }
