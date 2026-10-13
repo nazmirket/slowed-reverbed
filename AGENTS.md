@@ -41,10 +41,10 @@ Podman is the supported local container runtime. Compose files remain in the
 standard Compose format, so use Podman's Compose frontend:
 
 ```sh
-podman compose up --build -d
-podman compose ps
+podman-compose up --build -d
+podman-compose ps
 curl --fail http://127.0.0.1:9333/healthz
-podman compose down
+podman-compose down
 ```
 
 Set `APP_PORT` when another loopback port is needed. Keep generated output,

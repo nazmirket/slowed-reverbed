@@ -30,8 +30,8 @@ The production image is a multi-stage build. Node.js is used only to test and ge
 the static Nuxt output; an unprivileged Nginx process serves the final files.
 
 ```sh
-podman compose up --build -d
-podman compose ps
+podman-compose up --build -d
+podman-compose ps
 curl --fail http://127.0.0.1:9333/healthz
 ```
 
@@ -39,12 +39,12 @@ The Compose service binds to `127.0.0.1:9333` by default for a host-level revers
 proxy. Set `APP_PORT` when a different loopback port is needed:
 
 ```sh
-APP_PORT=9334 podman compose up --build -d
+APP_PORT=9334 podman-compose up --build -d
 ```
 
 To deploy an update on a single server, synchronize a clean source copy, run
-`podman compose build`, then recreate only this service with
-`podman compose up --no-deps -d app`. Verify `/healthz` before and after switching
+`podman-compose build`, then recreate only this service with
+`podman-compose up --no-deps -d app`. Verify `/healthz` before and after switching
 the reverse-proxy upstream.
 
 ## Live site
