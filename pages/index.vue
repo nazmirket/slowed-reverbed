@@ -22,6 +22,7 @@
 				<button
 					type="button"
 					class="rounded-full bg-purple-600 px-8 py-3 font-semibold text-white transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:cursor-not-allowed disabled:opacity-60"
+					:disabled="isLoading"
 					@click="fileInput?.click()"
 				>
 					{{ file ? 'Choose another file' : 'Select a file' }}
@@ -68,6 +69,7 @@
 					<button
 						type="button"
 						class="rounded-full border-4 border-purple-300 p-5 transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200"
+						:disabled="isLoading"
 						:aria-label="isPlaying ? 'Pause preview' : 'Play preview'"
 						@click="togglePlayback"
 					>
@@ -85,6 +87,7 @@
 					<button
 						type="button"
 						class="rounded-full border px-5 py-3 font-semibold transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
+						:disabled="isLoading"
 						@click="reset"
 					>
 						Start over
@@ -122,6 +125,7 @@ import {
 	getPlaybackRate,
 	getRenderDuration,
 	getWetMix,
+	validateAudioDuration,
 	validateAudioFile,
 } from '~/utils/audio'
 
@@ -136,6 +140,7 @@ const errorMessage = ref('')
 const sourceUrl = ref('')
 
 let player: import('tone').Player | null = null
+let reverbEffect: import('tone').Reverb | null = null
 let sourceObjectUrl = ''
 
 const statusMessage = computed(() => {
@@ -154,7 +159,9 @@ function releaseSourceUrl() {
 function disposePlayer() {
 	player?.stop()
 	player?.dispose()
+	reverbEffect?.dispose()
 	player = null
+	reverbEffect = null
 	isPlaying.value = false
 }
 
@@ -162,11 +169,16 @@ function handleFileChange(event: Event) {
 	const input = event.target as HTMLInputElement
 	const selectedFile = input.files?.[0] ?? null
 	if (!selectedFile) return
+	if (isLoading.value) {
+		input.value = ''
+		return
+	}
 
 	errorMessage.value = validateAudioFile(selectedFile) ?? ''
 	disposePlayer()
 	releaseSourceUrl()
 	isConverted.value = false
+	sourceUrl.value = ''
 	file.value = errorMessage.value ? null : selectedFile
 	if (file.value) {
 		sourceObjectUrl = URL.createObjectURL(file.value)
@@ -176,26 +188,43 @@ function handleFileChange(event: Event) {
 }
 
 async function convert() {
-	if (!file.value || !sourceUrl.value) return
+	if (isLoading.value || !file.value || !sourceUrl.value) return
 
 	isLoading.value = true
 	errorMessage.value = ''
+	isConverted.value = false
 	disposePlayer()
+	let nextPlayer: import('tone').Player | null = null
+	let nextFilter: import('tone').Reverb | null = null
 
 	try {
-		const [{ Player, Reverb }, Tone] = await Promise.all([import('tone'), import('tone')])
+		const sourceDuration = await getSourceDuration()
+		const durationError = validateAudioDuration(sourceDuration)
+		if (durationError) {
+			errorMessage.value = durationError
+			return
+		}
+
+		const Tone = await import('tone')
 		await Tone.start()
-		const nextPlayer = new Player().toDestination()
+		nextPlayer = new Tone.Player().toDestination()
 		await nextPlayer.load(sourceUrl.value)
 		nextPlayer.playbackRate = getPlaybackRate(slowdown.value)
-		const filter = new Reverb({
+		nextFilter = new Tone.Reverb({
 			decay: REVERB_DECAY_SECONDS,
 			wet: getWetMix(reverb.value),
 		}).toDestination()
-		nextPlayer.connect(filter)
+		nextPlayer.connect(nextFilter)
+		nextPlayer.onstop = () => {
+			if (player === nextPlayer) isPlaying.value = false
+		}
 		player = nextPlayer
+		reverbEffect = nextFilter
 		isConverted.value = true
 	} catch {
+		nextPlayer?.stop()
+		nextPlayer?.dispose()
+		nextFilter?.dispose()
 		errorMessage.value = 'The audio could not be prepared. Try another supported file.'
 	} finally {
 		isLoading.value = false
@@ -229,7 +258,7 @@ async function getSourceDuration(): Promise<number> {
 }
 
 async function download() {
-	if (!file.value || !sourceUrl.value) return
+	if (isLoading.value || !file.value || !sourceUrl.value) return
 
 	isLoading.value = true
 	errorMessage.value = ''
@@ -238,16 +267,22 @@ async function download() {
 			import('tone'),
 			getSourceDuration(),
 		])
+		const durationError = validateAudioDuration(sourceDuration)
+		if (durationError) {
+			errorMessage.value = durationError
+			return
+		}
 		const renderDuration = getRenderDuration(sourceDuration, getPlaybackRate(slowdown.value))
+
 		const buffer = await Offline(async () => {
-			const renderPlayer = new Player({ url: sourceUrl.value })
+			const renderPlayer = new Player()
 			renderPlayer.playbackRate = getPlaybackRate(slowdown.value)
 			const filter = new Reverb({
 				decay: REVERB_DECAY_SECONDS,
 				wet: getWetMix(reverb.value),
 			}).toDestination()
 			renderPlayer.connect(filter)
-			while (!renderPlayer.loaded) await new Promise(resolve => setTimeout(resolve, 50))
+			await renderPlayer.load(sourceUrl.value)
 			renderPlayer.start()
 		}, renderDuration, 1)
 		const blob = btow(buffer as never)
@@ -265,6 +300,7 @@ async function download() {
 }
 
 function reset() {
+	if (isLoading.value) return
 	disposePlayer()
 	releaseSourceUrl()
 	sourceUrl.value = ''

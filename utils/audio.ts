@@ -66,6 +66,18 @@ export function validateAudioFile(file: AudioFileDetails): string | null {
 	return null
 }
 
+export function validateAudioDuration(duration: number): string | null {
+	if (!Number.isFinite(duration) || duration <= 0) {
+		return 'Unable to read the selected audio duration.'
+	}
+
+	if (duration > MAX_AUDIO_DURATION_SECONDS) {
+		return 'The selected audio is longer than the 20 minute browser-processing limit.'
+	}
+
+	return null
+}
+
 export function getDownloadFileName(sourceName: string): string {
 	const baseName = sourceName.replace(/\.[^/.]+$/, '').trim() || 'audio'
 	return `${baseName}-slowed-reverbed.wav`

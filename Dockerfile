@@ -17,7 +17,7 @@ COPY . .
 
 RUN pnpm check && pnpm generate
 
-FROM nginx:1.30.4-alpine AS production
+FROM nginx:1.30.6-alpine AS production
 
 RUN rm -f /etc/nginx/conf.d/default.conf
 

@@ -6,6 +6,7 @@ import {
 	getPlaybackRate,
 	getRenderDuration,
 	getWetMix,
+	validateAudioDuration,
 	validateAudioFile,
 } from './audio'
 
@@ -56,6 +57,13 @@ describe('file validation', () => {
 
 	it('keeps the documented duration limit stable', () => {
 		expect(MAX_AUDIO_DURATION_SECONDS).toBe(20 * 60)
+	})
+
+	it('rejects invalid and overlong audio durations', () => {
+		expect(validateAudioDuration(0)).toMatch(/Unable to read/)
+		expect(validateAudioDuration(Number.NaN)).toMatch(/Unable to read/)
+		expect(validateAudioDuration(MAX_AUDIO_DURATION_SECONDS + 1)).toMatch(/20 minute/)
+		expect(validateAudioDuration(MAX_AUDIO_DURATION_SECONDS)).toBeNull()
 	})
 })
 
