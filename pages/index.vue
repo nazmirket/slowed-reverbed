@@ -1,111 +1,223 @@
 <template>
-	<main class="min-h-screen px-6 py-12 text-slate-700 sm:px-10">
-		<div class="mx-auto flex max-w-2xl flex-col items-center gap-10 text-center">
-			<header class="flex flex-col items-center gap-4">
-				<img class="h-16 w-16" src="/favicon.png" alt="Slowed and Reverbed logo" />
-				<div>
-					<p class="text-2xl font-black">Better when</p>
-					<h1 class="text-lg tracking-[0.55em]">slowed and reverbed</h1>
-				</div>
+	<main class="app-shell">
+		<div class="app-orbit app-orbit--one" aria-hidden="true"></div>
+		<div class="app-orbit app-orbit--two" aria-hidden="true"></div>
+
+		<div class="app-frame">
+			<header class="site-header">
+				<a class="brand" href="/" aria-label="Slowed and Reverbed home">
+					<span class="brand-mark" aria-hidden="true"
+						><span></span><span></span><span></span><span></span
+					></span>
+					<span class="brand-copy"
+						><strong>slowed<span>&amp;</span>reverbed</strong
+						><small>private audio studio</small></span
+					>
+				</a>
+				<p class="header-note"
+					><span class="status-dot" aria-hidden="true"></span>Runs locally in your
+					browser</p
+				>
 			</header>
 
-			<section class="flex w-full flex-col items-center gap-6" aria-labelledby="editor-title">
-				<h2 id="editor-title" class="sr-only">Audio editor</h2>
-				<input
-					ref="fileInput"
-					class="sr-only"
-					type="file"
-					accept="audio/*,.aac,.flac,.m4a,.mp3,.mp4,.oga,.ogg,.opus,.wav,.wave,.webm"
-					@change="handleFileChange"
-				/>
-
-				<button
-					type="button"
-					class="rounded-full bg-purple-600 px-8 py-3 font-semibold text-white transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:cursor-not-allowed disabled:opacity-60"
-					:disabled="isLoading"
-					@click="fileInput?.click()"
-				>
-					{{ file ? 'Choose another file' : 'Select a file' }}
-				</button>
-
-				<p v-if="file" class="rounded-full bg-slate-600 px-6 py-3 text-white">
-					{{ file.name }}
-				</p>
-
-				<div v-if="file && !isConverted" class="grid w-full max-w-md gap-4 text-left">
-					<label class="rounded-xl border px-4 py-3">
-						<span class="mb-2 block font-semibold">Slowed: {{ slowdown }}%</span>
-						<input
-							v-model.number="slowdown"
-							class="w-full accent-purple-600"
-							type="range"
-							:min="MIN_SLOWDOWN_PERCENT"
-							:max="MAX_SLOWDOWN_PERCENT"
-							:aria-label="`Slowdown percentage: ${slowdown}`"
-						/>
-					</label>
-					<label class="rounded-xl border px-4 py-3">
-						<span class="mb-2 block font-semibold">Reverb: {{ reverb }}</span>
-						<input
-							v-model.number="reverb"
-							class="w-full accent-purple-600"
-							type="range"
-							:min="MIN_REVERB_LEVEL"
-							:max="MAX_REVERB_LEVEL"
-							:aria-label="`Reverb level: ${reverb}`"
-						/>
-					</label>
-					<button
-						type="button"
-						class="rounded-full bg-purple-600 px-8 py-3 font-semibold text-white transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:cursor-not-allowed disabled:opacity-60"
-						:disabled="isLoading"
-						@click="convert"
+			<div class="studio-layout">
+				<section class="intro-panel" aria-labelledby="page-title">
+					<p class="eyebrow">A softer kind of loud</p>
+					<h1 id="page-title">Shape the<br /><em>atmosphere.</em></h1>
+					<p class="intro-copy"
+						>Slow the tempo, open the room, and make a version that feels like yours. Your
+						audio never leaves this device.</p
 					>
-						{{ isLoading ? 'Preparing audio…' : 'Convert' }}
-					</button>
-				</div>
-
-				<div v-if="isConverted" class="flex flex-wrap justify-center gap-4">
-					<button
-						type="button"
-						class="rounded-full border-4 border-purple-300 p-5 transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200"
-						:disabled="isLoading"
-						:aria-label="isPlaying ? 'Pause preview' : 'Play preview'"
-						@click="togglePlayback"
+					<div class="signal-line" aria-hidden="true"
+						><span></span><span></span><span></span><span></span><span></span><span></span
+						><span></span><span></span><span></span><span></span><span></span><span></span
+						><span></span><span></span><span></span><span></span
+					></div>
+					<div class="process-note"
+						><span class="process-number">01</span
+						><span
+							>Choose a source, make it yours,<br />take the finished WAV with you.</span
+						></div
 					>
-						<img v-if="!isPlaying" class="h-6 w-6" src="/play.svg" alt="" />
-						<img v-else class="h-6 w-6" src="/pause.svg" alt="" />
-					</button>
-					<button
-						type="button"
-						class="rounded-full bg-purple-600 px-8 py-3 font-semibold text-white transition hover:scale-[1.03] focus:outline-none focus:ring-4 focus:ring-purple-200 disabled:cursor-not-allowed disabled:opacity-60"
-						:disabled="isLoading"
-						@click="download"
-					>
-						{{ isLoading ? 'Rendering…' : 'Download WAV' }}
-					</button>
-					<button
-						type="button"
-						class="rounded-full border px-5 py-3 font-semibold transition hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-200"
-						:disabled="isLoading"
-						@click="reset"
-					>
-						Start over
-					</button>
-				</div>
+				</section>
 
-				<p v-if="errorMessage" class="w-full max-w-md rounded-xl bg-red-50 px-4 py-3 text-left text-red-700" role="alert">
-					{{ errorMessage }}
-				</p>
-				<p class="text-sm text-slate-500" aria-live="polite">
-					{{ statusMessage }}
-				</p>
-			</section>
+				<section class="workbench" aria-labelledby="editor-title">
+					<div class="workbench-topline">
+						<div
+							><p class="eyebrow eyebrow--dark">Your session</p
+							><h2 id="editor-title">Audio workspace</h2></div
+						>
+						<span class="session-pill"
+							><span class="status-dot status-dot--dark" aria-hidden="true"></span>Local
+							only</span
+						>
+					</div>
 
-			<footer class="text-sm text-slate-500">
-				Made by
-				<a class="text-indigo-600 hover:underline" href="https://github.com/nazmirket">@nazmirket</a>
-			</footer>
+					<input
+						ref="fileInput"
+						class="visually-hidden"
+						type="file"
+						accept="audio/*,.aac,.flac,.m4a,.mp3,.mp4,.oga,.ogg,.opus,.wav,.wave,.webm"
+						@change="handleFileChange"
+					/>
+
+					<div v-if="!file" class="empty-state">
+						<div class="upload-visual" aria-hidden="true"
+							><div class="upload-orb"><span></span></div
+							><div class="upload-wave upload-wave--one"></div
+							><div class="upload-wave upload-wave--two"></div
+						></div>
+						<h3>Start with a sound</h3>
+						<p>MP3, WAV, M4A, FLAC, OGG, or WebM<br />up to 150 MB and 20 minutes</p>
+						<button
+							type="button"
+							class="button button--primary button--wide"
+							:disabled="isLoading"
+							@click="fileInput?.click()"
+							><span>Choose an audio file</span
+							><span class="button-arrow" aria-hidden="true">↗</span></button
+						>
+						<p class="privacy-note"
+							><span aria-hidden="true">✦</span> Nothing is uploaded. Processing happens
+							on this device.</p
+						>
+					</div>
+
+					<div v-else class="editor-state">
+						<div class="source-card">
+							<div class="source-icon" aria-hidden="true"
+								><span></span><span></span><span></span><span></span
+							></div>
+							<div class="source-details"
+								><span class="source-label">{{
+									isConverted ? 'Finished version' : 'Source audio'
+								}}</span
+								><strong :title="file.name">{{ file.name }}</strong
+								><span
+									>{{ file.type || 'Audio file' }} <i aria-hidden="true">·</i> stays on
+									this device</span
+								></div
+							>
+							<button
+								type="button"
+								class="icon-button"
+								aria-label="Choose a different audio file"
+								:disabled="isLoading"
+								@click="fileInput?.click()"
+								>↗</button
+							>
+						</div>
+
+						<div v-if="!isConverted" class="settings-panel">
+							<div class="settings-heading"
+								><div
+									><span class="eyebrow eyebrow--dark">Make it yours</span
+									><h3>Shape the sound</h3></div
+								><span class="settings-hint">Adjust, then preview</span></div
+							>
+							<div class="slider-stack">
+								<label class="slider-control"
+									><span class="slider-meta"
+										><span>Slowdown</span
+										><strong>{{ slowdown }}<small>%</small></strong></span
+									><span class="slider-caption"
+										><span>Original</span><span>Dreamy</span></span
+									><input
+										v-model.number="slowdown"
+										class="range-input"
+										type="range"
+										:style="{ '--range-fill': slowdownFill }"
+										:min="MIN_SLOWDOWN_PERCENT"
+										:max="MAX_SLOWDOWN_PERCENT"
+										:aria-label="`Slowdown percentage: ${slowdown}`"
+								/></label>
+								<label class="slider-control"
+									><span class="slider-meta"
+										><span>Reverb</span
+										><strong>{{ reverb }}<small>/10</small></strong></span
+									><span class="slider-caption"
+										><span>Close</span><span>Wide open</span></span
+									><input
+										v-model.number="reverb"
+										class="range-input"
+										type="range"
+										:style="{ '--range-fill': reverbFill }"
+										:min="MIN_REVERB_LEVEL"
+										:max="MAX_REVERB_LEVEL"
+										:aria-label="`Reverb level: ${reverb}`"
+								/></label>
+							</div>
+							<button
+								type="button"
+								class="button button--primary button--wide"
+								:disabled="isLoading"
+								@click="convert"
+								><span>{{
+									isLoading ? 'Preparing your sound…' : 'Create my version'
+								}}</span
+								><span class="button-arrow" aria-hidden="true">→</span></button
+							>
+						</div>
+
+						<div v-else class="result-panel">
+							<div class="result-banner"
+								><span class="result-check" aria-hidden="true">✓</span
+								><span
+									><strong>Your version is ready</strong
+									><small>Listen back or save the WAV</small></span
+								></div
+							>
+							<div class="result-wave" aria-hidden="true"
+								><span
+									v-for="bar in 32"
+									:key="bar"
+									:style="{ height: `${18 + ((bar * 17) % 52)}%` }"
+								></span
+							></div>
+							<div class="result-actions"
+								><button
+									type="button"
+									class="play-button"
+									:disabled="isLoading"
+									:aria-label="isPlaying ? 'Pause preview' : 'Play preview'"
+									@click="togglePlayback"
+									><img v-if="!isPlaying" src="/play.svg" alt="" /><img
+										v-else
+										src="/pause.svg"
+										alt="" /></button
+								><button
+									type="button"
+									class="button button--primary"
+									:disabled="isLoading"
+									@click="download"
+									><span>{{ isLoading ? 'Rendering…' : 'Download WAV' }}</span
+									><span class="button-arrow" aria-hidden="true">↓</span></button
+								><button
+									type="button"
+									class="button button--quiet"
+									:disabled="isLoading"
+									@click="reset"
+									>Start over</button
+								></div
+							>
+						</div>
+					</div>
+
+					<p v-if="errorMessage" class="error-message" role="alert"
+						><span aria-hidden="true">!</span>{{ errorMessage }}</p
+					>
+					<p class="status-message" aria-live="polite"
+						><span class="status-bar" aria-hidden="true"></span>{{ statusMessage }}</p
+					>
+				</section>
+			</div>
+
+			<footer class="site-footer"
+				><span>Made for late-night listening</span
+				><a href="https://github.com/nazmirket"
+					>@nazmirket <span aria-hidden="true">↗</span></a
+				><span>Browser audio · no uploads</span></footer
+			>
 		</div>
 	</main>
 </template>
@@ -145,17 +257,26 @@ let sourceObjectUrl = ''
 
 const statusMessage = computed(() => {
 	if (isLoading.value) return 'Processing locally in your browser…'
-	if (isConverted.value) return 'Ready to preview or download. Your file stays on this device.'
-	if (file.value) return 'Choose your settings, then convert the audio.'
+	if (isConverted.value)
+		return 'Ready to preview or download. Your file stays on this device.'
+	if (file.value) return 'Choose your settings, then create your version.'
 	return 'Choose an audio file to begin. Files are processed locally in your browser.'
 })
+
+const slowdownFill = computed(
+	() =>
+		`${((slowdown.value - MIN_SLOWDOWN_PERCENT) / (MAX_SLOWDOWN_PERCENT - MIN_SLOWDOWN_PERCENT)) * 100}%`,
+)
+const reverbFill = computed(
+	() =>
+		`${((reverb.value - MIN_REVERB_LEVEL) / (MAX_REVERB_LEVEL - MIN_REVERB_LEVEL)) * 100}%`,
+)
 
 function releaseSourceUrl() {
 	if (!sourceObjectUrl) return
 	URL.revokeObjectURL(sourceObjectUrl)
 	sourceObjectUrl = ''
 }
-
 function disposePlayer() {
 	player?.stop()
 	player?.dispose()
@@ -173,7 +294,6 @@ function handleFileChange(event: Event) {
 		input.value = ''
 		return
 	}
-
 	errorMessage.value = validateAudioFile(selectedFile) ?? ''
 	disposePlayer()
 	releaseSourceUrl()
@@ -189,14 +309,12 @@ function handleFileChange(event: Event) {
 
 async function convert() {
 	if (isLoading.value || !file.value || !sourceUrl.value) return
-
 	isLoading.value = true
 	errorMessage.value = ''
 	isConverted.value = false
 	disposePlayer()
 	let nextPlayer: import('tone').Player | null = null
 	let nextFilter: import('tone').Reverb | null = null
-
 	try {
 		const sourceDuration = await getSourceDuration()
 		const durationError = validateAudioDuration(sourceDuration)
@@ -204,7 +322,6 @@ async function convert() {
 			errorMessage.value = durationError
 			return
 		}
-
 		const Tone = await import('tone')
 		await Tone.start()
 		nextPlayer = new Tone.Player().toDestination()
@@ -252,14 +369,19 @@ async function getSourceDuration(): Promise<number> {
 	if (!sourceUrl.value) throw new Error('No source audio selected.')
 	return await new Promise((resolve, reject) => {
 		const audio = new Audio(sourceUrl.value)
-		audio.addEventListener('loadedmetadata', () => resolve(audio.duration), { once: true })
-		audio.addEventListener('error', () => reject(new Error('Unable to read audio duration.')), { once: true })
+		audio.addEventListener('loadedmetadata', () => resolve(audio.duration), {
+			once: true,
+		})
+		audio.addEventListener(
+			'error',
+			() => reject(new Error('Unable to read audio duration.')),
+			{ once: true },
+		)
 	})
 }
 
 async function download() {
 	if (isLoading.value || !file.value || !sourceUrl.value) return
-
 	isLoading.value = true
 	errorMessage.value = ''
 	try {
@@ -272,19 +394,25 @@ async function download() {
 			errorMessage.value = durationError
 			return
 		}
-		const renderDuration = getRenderDuration(sourceDuration, getPlaybackRate(slowdown.value))
-
-		const buffer = await Offline(async () => {
-			const renderPlayer = new Player()
-			renderPlayer.playbackRate = getPlaybackRate(slowdown.value)
-			const filter = new Reverb({
-				decay: REVERB_DECAY_SECONDS,
-				wet: getWetMix(reverb.value),
-			}).toDestination()
-			renderPlayer.connect(filter)
-			await renderPlayer.load(sourceUrl.value)
-			renderPlayer.start()
-		}, renderDuration, 1)
+		const renderDuration = getRenderDuration(
+			sourceDuration,
+			getPlaybackRate(slowdown.value),
+		)
+		const buffer = await Offline(
+			async () => {
+				const renderPlayer = new Player()
+				renderPlayer.playbackRate = getPlaybackRate(slowdown.value)
+				const filter = new Reverb({
+					decay: REVERB_DECAY_SECONDS,
+					wet: getWetMix(reverb.value),
+				}).toDestination()
+				renderPlayer.connect(filter)
+				await renderPlayer.load(sourceUrl.value)
+				renderPlayer.start()
+			},
+			renderDuration,
+			1,
+		)
 		const blob = btow(buffer as never)
 		const downloadUrl = URL.createObjectURL(new Blob([blob], { type: 'audio/wav' }))
 		const link = document.createElement('a')
@@ -310,7 +438,6 @@ function reset() {
 	slowdown.value = DEFAULT_SLOWDOWN_PERCENT
 	reverb.value = DEFAULT_REVERB_LEVEL
 }
-
 onBeforeUnmount(() => {
 	disposePlayer()
 	releaseSourceUrl()
