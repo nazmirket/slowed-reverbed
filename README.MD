@@ -54,3 +54,10 @@ the reverse-proxy upstream.
 ## Author
 
 - Instagram [@codemirket](https://instagram.com/codemirket)
+
+## Agent development
+
+Both Codex Desktop and Claude Desktop Code use the Mirket harness. Follow
+[AGENTS.md](AGENTS.md) for setup, selected expertise, worker routing and
+application verification. Run `pnpm agents:check` before delivery; the dedicated
+Mirket CI workflow checks the committed integration and real failure probes.

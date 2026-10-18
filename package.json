@@ -15,7 +15,8 @@
 		"postinstall": "nuxt prepare",
 		"preview": "node .output/server/index.mjs",
 		"test": "vitest run",
-		"typecheck": "nuxt typecheck"
+		"typecheck": "nuxt typecheck",
+		"agents:check": "mirket project doctor --project . && node --test scripts/harness.node.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "10.0.1",

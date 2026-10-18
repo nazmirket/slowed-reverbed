@@ -7,3 +7,9 @@ node_modules
 pnpm-debug.log
 *.log*
 .DS_Store
+.agents
+.claude
+.mirket
+AGENTS.md
+CLAUDE.md
+scripts/harness.node.mjs

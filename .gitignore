@@ -8,3 +8,8 @@ node_modules
 dist
 .DS_Store
 coverage
+
+# Local agent state (managed project skills remain versioned)
+.mirket/project.lock
+.claude/settings.local.json
+.codex/
