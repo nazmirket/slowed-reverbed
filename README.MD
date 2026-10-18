@@ -1,22 +1,69 @@
-# Slowed & Reverbed Maker
+# Slowed & Reverbed
 
-[<img src="public/favicon.png" alt="Slowed & Reverbed Song Generator" width="72">](https://sr.mirket.dev/)
+**Slow a track, add reverb, and export a WAV—all in your browser.**
 
-This Nuxt application creates slowed and reverbed WAV files with Tone.js. Audio
-selection, preview, processing, and export all happen locally in the browser. Files
-are never uploaded.
+A browser-based audio studio built with Nuxt and Tone.js. Choose an audio file,
+adjust the sound, preview it, and download the processed track. Audio decoding,
+effects, and export run locally; selected files are not uploaded.
 
-## Development
+[Open the audio studio](https://sr.mirket.dev/) · [Local development](#local-development) · [Deployment](#container-deployment) · [Report an issue](https://github.com/nazmirket/slowed-reverbed/issues)
 
-Use an LTS Node.js version from the range in `package.json`.
+[![Slowed & Reverbed audio studio with a local file-selection workspace](docs/images/preview.png)](https://sr.mirket.dev/)
+
+## Make a track
+
+1. Choose an audio file from your device.
+2. Set the slowdown amount and reverb level.
+3. Preview the sound and adjust the controls.
+4. Render and download the result as a WAV file.
+
+Slowing playback also lowers pitch. The render includes the reverb tail so the
+effect can fade out after the track ends.
+
+| Control or limit | Supported range |
+| --- | --- |
+| Slowdown | 5–60% (15% by default) |
+| Reverb | 1–10 (3 by default) |
+| Input file size | Up to 150 MiB |
+| Input duration | Up to 20 minutes |
+| Export | WAV |
+
+Supported input formats depend on your browser's audio decoder. Common choices
+include MP3, WAV, M4A, OGG, and FLAC. Decoded audio and the rendered output use
+memory, so large tracks may exceed the resources available on smaller devices.
+The site still makes normal network requests to load its code and assets;
+local audio processing does not imply offline availability.
+
+## Local development
+
+Use **Node.js 22–24** and **pnpm 10.33.0**.
 
 ```sh
+git clone https://github.com/nazmirket/slowed-reverbed.git
+cd slowed-reverbed
 corepack enable
 pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Before shipping a change:
+Open the local URL printed by Nuxt, usually `http://localhost:3000`.
+No database, API service, or account credentials are required to process audio.
+
+## Project structure
+
+| Path | Responsibility |
+| --- | --- |
+| `pages/index.vue` | File selection, playback, effect controls, rendering, and download |
+| `utils/audio.ts` | Audio limits, validation, playback rates, and output duration |
+| `utils/audio.test.ts` | Regression tests for the audio utilities |
+| `public/` | Static assets and site metadata |
+| `docker/nginx.conf` | Static hosting and health endpoint |
+
+The app uses Nuxt, Vue, TypeScript, Tailwind CSS, Tone.js, and
+`audiobuffer-to-wav`. Nuxt generates a static site; audio processing uses the
+browser's Web Audio capabilities.
+
+## Verify and build
 
 ```sh
 pnpm check
@@ -24,10 +71,15 @@ pnpm audit
 pnpm generate
 ```
 
-## Docker deployment
+`pnpm check` runs lint, type checks, and unit tests. `pnpm generate` writes the
+static site to `.output/public/`, ready for a static host. For audio or interface
+changes, also test file selection, preview, rendering, download, and error
+recovery in a real browser.
 
-The production image is a multi-stage build. Node.js is used only to test and generate
-the static Nuxt output; an unprivileged Nginx process serves the final files.
+## Container deployment
+
+Use **Podman with a Compose provider**. The multi-stage image runs the application
+checks and static generation, then serves the output with unprivileged Nginx.
 
 ```sh
 podman compose up --build -d
@@ -35,29 +87,31 @@ podman compose ps
 curl --fail http://127.0.0.1:9333/healthz
 ```
 
-The Compose service binds to `127.0.0.1:9333` by default for a host-level reverse
-proxy. Set `APP_PORT` when a different loopback port is needed:
+The service binds to loopback at `127.0.0.1:9333` for use behind a reverse proxy.
+Set `APP_PORT` to choose another host port:
 
 ```sh
 APP_PORT=9334 podman compose up --build -d
 ```
 
-To deploy an update on a single server, synchronize a clean source copy, run
-`podman compose build`, then recreate only this service with
-`podman compose up --no-deps -d app`. Verify `/healthz` before and after switching
-the reverse-proxy upstream.
+To update a deployment, build from the intended source revision and recreate the
+app service:
 
-## Live site
+```sh
+podman compose build
+podman compose up --no-deps -d app
+curl --fail http://127.0.0.1:9333/healthz
+```
 
-[https://sr.mirket.dev/](https://sr.mirket.dev/)
+Use `podman compose down` to stop the service. See [compose.yaml](compose.yaml)
+for the image tag, health check, read-only filesystem, and port configuration.
 
-## Author
+## Contributing
 
-- Instagram [@codemirket](https://instagram.com/codemirket)
+Report reproducible bugs or suggest improvements through
+[GitHub Issues](https://github.com/nazmirket/slowed-reverbed/issues). Include your
+browser, input format, track duration, and the steps that reproduce the issue.
 
-## Agent development
-
-Both Codex Desktop and Claude Desktop Code use the Mirket harness. Follow
-[AGENTS.md](AGENTS.md) for setup, selected expertise, worker routing and
-application verification. Run `pnpm agents:check` before delivery; the dedicated
-Mirket CI workflow checks the committed integration and real failure probes.
+[AGENTS.md](AGENTS.md) documents the Mirket workflow for Codex Desktop and Claude
+Desktop Code. Run `pnpm agents:check` alongside the application checks when
+working with an agent.
