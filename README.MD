@@ -46,7 +46,7 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Open the local URL printed by Nuxt, usually `http://localhost:3000`.
+Open the local URL printed by Nuxt, usually `http://localhost:9333`.
 No database, API service, or account credentials are required to process audio.
 
 ## Project structure
