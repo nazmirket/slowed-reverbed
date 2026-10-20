@@ -83,10 +83,21 @@ started with 1.0.11 already installed and did not migrate or restore that state.
 
 ## Outstanding verification limits
 
+**Claude live activation remains unverified.** Its configured executable was
+verified, but a `runtime_status` call must be made inside Claude's actual existing
+connection. Compare all pinned fingerprints and require
+`installed_binary.matches_process: true`; reconnect and repeat if stale. Neither
+Codex's successful call nor GitHub CI closes this gap.
+
 The Codex connection was observed at 1.0.11 with matching public executable,
-source and catalog fingerprints. Claude's configured executable was verified,
-but its live connection must be checked from Claude itself. No remote CI run or
-Windows execution is implied by local checks.
+source and catalog fingerprints. The [Linux harness workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393197910)
+passed after runner provisioning was corrected to use supported `mirket setup`
+before checking installed-binary identity. The
+[initial application workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393064705)
+passed installation, lint, types, unit tests, static generation and browser tests
+on Node 22 and 24; its audit step failed on the advisories below. Matrix fail-fast
+is disabled so one failed job does not cancel another platform's evidence.
+Windows and non-Chromium browser execution remain unverified.
 
 The dependency audit currently reports two high advisories in development tooling:
 [`node-forge@1.4.0`](https://github.com/advisories/GHSA-86w9-cpqp-85rv) via
