@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 24
           package-manager-cache: false
-      - name: Verify and expose the published harness
+      - name: Verify and install the published harness
         run: |
           MIRKET_RELEASE="$(node -p "'mirket-v' + require('./.mirket/release.json').version")"
           MIRKET_SHA256="$(node -p "require('./.mirket/release.json').assets.find(a => a.target === 'x86_64-unknown-linux-gnu').sha256")"
@@ -27,6 +27,7 @@ jobs:
             --output "$RUNNER_TEMP/mirket-runtime/bin/mirket"
           printf '%s  %s\n' "$MIRKET_SHA256" "$RUNNER_TEMP/mirket-runtime/bin/mirket" | sha256sum --check --strict
           chmod +x "$RUNNER_TEMP/mirket-runtime/bin/mirket"
-          echo "$RUNNER_TEMP/mirket-runtime/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/mirket-runtime/bin/mirket" setup --target all --no-packages --yes
+          echo "$HOME/.mirket/bin" >> "$GITHUB_PATH"
       - name: Check committed adoption and failure probes
         run: npm run agents:check
