@@ -1,3 +1,4 @@
+import { verifyIdentity } from './harness-identity.mjs'
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import {
@@ -75,16 +76,35 @@ for (const target of ['.agents', '.claude']) {
 	}
 }
 
-test('the installed harness matches the reviewed CI release', () => {
-	const version = read('.github/workflows/harness.yml').match(
-		/MIRKET_RELEASE: mirket-v(\d+\.\d+\.\d+)/,
-	)?.[1]
-	assert.ok(version, 'the published release pin is required')
-	const runtime = spawnSync('mirket', ['--version'], { encoding: 'utf8' })
+test('the installed harness matches the published binary and embedded content', () => {
+	const runtime = spawnSync('mirket', ['info', '--json'], { encoding: 'utf8' })
 	assert.equal(runtime.status, 0, runtime.stderr)
-	assert.equal(
-		runtime.stdout.trim(),
-		`mirket ${version}`,
-		'Run mirket update and synchronize the project before continuing',
-	)
+	verifyIdentity(JSON.parse(runtime.stdout), JSON.parse(read('.mirket/release.json')))
+})
+
+test('matching versions cannot conceal replaced binary, source or catalog', () => {
+	const pin = JSON.parse(read('.mirket/release.json'))
+	const identity = {
+		process: {
+			version: pin.version,
+			target: pin.assets[0].target,
+			executable_sha256: pin.assets[0].sha256,
+			source_sha256: pin.source_sha256,
+		},
+		catalog: { sha256: pin.catalog_sha256 },
+		installed_binary: { matches_process: true, sha256: pin.assets[0].sha256 },
+	}
+	verifyIdentity(identity, pin)
+	for (const [section, field] of [
+		['process', 'executable_sha256'],
+		['process', 'source_sha256'],
+		['catalog', 'sha256'],
+		['installed_binary', 'sha256'],
+		['installed_binary', 'matches_process'],
+		['process', 'target'],
+	]) {
+		const forged = structuredClone(identity)
+		forged[section][field] = field === 'matches_process' ? false : 'forged'
+		assert.throws(() => verifyIdentity(forged, pin), `${section}.${field}`)
+	}
 })

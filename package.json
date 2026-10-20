@@ -11,15 +11,18 @@
 		"check": "pnpm lint && pnpm typecheck && pnpm test",
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
-		"lint": "eslint nuxt.config.ts eslint.config.mjs pages utils",
+		"lint": "eslint nuxt.config.ts playwright.config.ts vitest.config.ts eslint.config.mjs pages utils tests scripts",
 		"postinstall": "nuxt prepare",
-		"preview": "node .output/server/index.mjs",
+		"preview": "serve .output/public --listen tcp://127.0.0.1:9335",
 		"test": "vitest run",
 		"typecheck": "nuxt typecheck",
-		"agents:check": "mirket project doctor --project . && node --test scripts/harness.node.mjs"
+		"agents:check": "mirket project doctor --project . && node --test scripts/harness.node.mjs",
+		"test:browser": "playwright test",
+		"design:tokens": "node scripts/design-tokens.mjs"
 	},
 	"devDependencies": {
 		"@eslint/js": "10.0.1",
+		"@playwright/test": "1.64.1",
 		"@tailwindcss/vite": "4.3.3",
 		"@types/audiobuffer-to-wav": "1.0.4",
 		"eslint": "10.8.0",
@@ -28,6 +31,7 @@
 		"globals": "17.8.0",
 		"nuxt": "3.21.11",
 		"prettier": "3.9.6",
+		"serve": "14.2.6",
 		"tailwindcss": "4.3.3",
 		"typescript": "5.8.3",
 		"typescript-eslint": "8.65.0",
@@ -59,7 +63,8 @@
 			"picomatch@>=4.0.0 <4.0.5": "4.0.5",
 			"rollup@>=4.0.0 <4.62.3": "4.62.3",
 			"tar@>=7.0.0 <7.5.22": "7.5.22",
-			"uuid@>=11.0.0 <11.1.1": "11.1.1"
+			"uuid@>=11.0.0 <11.1.1": "11.1.1",
+			"compression@<1.8.2": "1.8.2"
 		}
 	}
 }

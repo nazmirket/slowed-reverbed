@@ -55,7 +55,10 @@ No database, API service, or account credentials are required to process audio.
 | --- | --- |
 | `pages/index.vue` | File selection, playback, effect controls, rendering, and download |
 | `utils/audio.ts` | Audio limits, validation, playback rates, and output duration |
-| `utils/audio.test.ts` | Regression tests for the audio utilities |
+| `utils/audio-metadata.ts` | Cancellable metadata validation before full decoding |
+| `utils/*.test.ts` | Audio utility, timeout and cleanup regression tests |
+| `tests/browser/` | Real-browser audio journeys and failure probes |
+| `design/tokens.json` | Canonical palette, compiled by `pnpm design:tokens` |
 | `public/` | Static assets and site metadata |
 | `docker/nginx.conf` | Static hosting and health endpoint |
 
@@ -69,9 +72,13 @@ browser's Web Audio capabilities.
 pnpm check
 pnpm audit
 pnpm generate
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
 
-`pnpm check` runs lint, type checks, and unit tests. `pnpm generate` writes the
+`pnpm check` runs lint, type checks, and unit tests. Browser tests cover preview,
+stereo export, cancellation, corrupt-input recovery and URL cleanup.
+`pnpm preview` serves the generated site on loopback port 9335. `pnpm generate` writes the
 static site to `.output/public/`, ready for a static host. For audio or interface
 changes, also test file selection, preview, rendering, download, and error
 recovery in a real browser.
@@ -115,3 +122,6 @@ browser, input format, track duration, and the steps that reproduce the issue.
 [AGENTS.md](AGENTS.md) documents the Mirket workflow for Codex Desktop and Claude
 Desktop Code. Run `pnpm agents:check` alongside the application checks when
 working with an agent.
+
+See [harness adoption and recovery](docs/harness.md) for the pinned release,
+client activation checks, design workflow and outstanding dependency advisories.

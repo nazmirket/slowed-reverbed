@@ -13,3 +13,7 @@ coverage
 .mirket/project.lock
 .claude/settings.local.json
 .codex/
+
+# Browser verification artifacts
+/test-results/
+/playwright-report/

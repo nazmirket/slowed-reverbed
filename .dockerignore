@@ -13,3 +13,6 @@ pnpm-debug.log
 AGENTS.md
 CLAUDE.md
 scripts/harness.node.mjs
+
+test-results
+playwright-report

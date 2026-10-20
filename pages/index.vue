@@ -55,6 +55,7 @@
 
 					<input
 						ref="fileInput"
+						aria-label="Audio source file"
 						class="visually-hidden"
 						type="file"
 						accept="audio/*,.aac,.flac,.m4a,.mp3,.mp4,.oga,.ogg,.opus,.wav,.wave,.webm"
@@ -203,6 +204,13 @@
 						</div>
 					</div>
 
+					<button
+						v-if="isLoading"
+						type="button"
+						class="button button--quiet"
+						@click="cancelOperation"
+						>Cancel processing</button
+					>
 					<p v-if="errorMessage" class="error-message" role="alert"
 						><span aria-hidden="true">!</span>{{ errorMessage }}</p
 					>
@@ -224,6 +232,7 @@
 
 <script setup lang="ts">
 import btow from 'audiobuffer-to-wav'
+import { readAudioDuration } from '~/utils/audio-metadata'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import {
 	DEFAULT_REVERB_LEVEL,
@@ -233,6 +242,7 @@ import {
 	MIN_REVERB_LEVEL,
 	MIN_SLOWDOWN_PERCENT,
 	REVERB_DECAY_SECONDS,
+	REVERB_PREDELAY_SECONDS,
 	getDownloadFileName,
 	getPlaybackRate,
 	getRenderDuration,
@@ -254,6 +264,8 @@ const sourceUrl = ref('')
 let player: import('tone').Player | null = null
 let reverbEffect: import('tone').Reverb | null = null
 let sourceObjectUrl = ''
+let operation: AbortController | null = null
+let disposed = false
 
 const statusMessage = computed(() => {
 	if (isLoading.value) return 'Processing locally in your browser…'
@@ -307,8 +319,14 @@ function handleFileChange(event: Event) {
 	input.value = ''
 }
 
+function cancelOperation() {
+	operation?.abort()
+}
+
 async function convert() {
 	if (isLoading.value || !file.value || !sourceUrl.value) return
+	const controller = new AbortController()
+	operation = controller
 	isLoading.value = true
 	errorMessage.value = ''
 	isConverted.value = false
@@ -316,113 +334,129 @@ async function convert() {
 	let nextPlayer: import('tone').Player | null = null
 	let nextFilter: import('tone').Reverb | null = null
 	try {
-		const sourceDuration = await getSourceDuration()
-		const durationError = validateAudioDuration(sourceDuration)
-		if (durationError) {
-			errorMessage.value = durationError
-			return
-		}
+		const metadataDuration = await readAudioDuration(sourceUrl.value, controller.signal)
+		const metadataError = validateAudioDuration(metadataDuration)
+		if (metadataError) throw new Error(metadataError)
 		const Tone = await import('tone')
+		controller.signal.throwIfAborted()
 		await Tone.start()
-		nextPlayer = new Tone.Player().toDestination()
+		controller.signal.throwIfAborted()
+		nextPlayer = new Tone.Player()
 		await nextPlayer.load(sourceUrl.value)
+		controller.signal.throwIfAborted()
+		const durationError = validateAudioDuration(nextPlayer.buffer.duration)
+		if (durationError) throw new Error(durationError)
 		nextPlayer.playbackRate = getPlaybackRate(slowdown.value)
 		nextFilter = new Tone.Reverb({
 			decay: REVERB_DECAY_SECONDS,
+			preDelay: REVERB_PREDELAY_SECONDS,
 			wet: getWetMix(reverb.value),
 		}).toDestination()
 		nextPlayer.connect(nextFilter)
+		await nextFilter.ready
+		controller.signal.throwIfAborted()
+		const preparedPlayer = nextPlayer
 		nextPlayer.onstop = () => {
-			if (player === nextPlayer) isPlaying.value = false
+			if (player === preparedPlayer) isPlaying.value = false
 		}
 		player = nextPlayer
 		reverbEffect = nextFilter
+		nextPlayer = null
+		nextFilter = null
 		isConverted.value = true
-	} catch {
-		nextPlayer?.stop()
+	} catch (error) {
+		if (!disposed && !controller.signal.aborted) {
+			errorMessage.value =
+				error instanceof Error && /20 minute/.test(error.message)
+					? error.message
+					: 'The audio could not be prepared. Try another supported file.'
+		}
+	} finally {
 		nextPlayer?.dispose()
 		nextFilter?.dispose()
-		errorMessage.value = 'The audio could not be prepared. Try another supported file.'
-	} finally {
+		operation = null
 		isLoading.value = false
 	}
 }
 
 async function togglePlayback() {
-	if (!player) return
+	const current = player
+	if (!current || isLoading.value) return
 	try {
 		const Tone = await import('tone')
 		await Tone.start()
+		if (disposed || player !== current || isLoading.value) return
 		if (isPlaying.value) {
-			player.stop()
+			current.stop()
 			isPlaying.value = false
 		} else {
-			player.start()
+			current.start()
 			isPlaying.value = true
 		}
 	} catch {
-		errorMessage.value = 'Preview could not start in this browser.'
+		if (!disposed) errorMessage.value = 'Preview could not start in this browser.'
 	}
 }
 
-async function getSourceDuration(): Promise<number> {
-	if (!sourceUrl.value) throw new Error('No source audio selected.')
-	return await new Promise((resolve, reject) => {
-		const audio = new Audio(sourceUrl.value)
-		audio.addEventListener('loadedmetadata', () => resolve(audio.duration), {
-			once: true,
-		})
-		audio.addEventListener(
-			'error',
-			() => reject(new Error('Unable to read audio duration.')),
-			{ once: true },
-		)
-	})
-}
-
 async function download() {
-	if (isLoading.value || !file.value || !sourceUrl.value) return
+	if (isLoading.value || !file.value || !player) return
+	const controller = new AbortController()
+	operation = controller
+	const source = player.buffer.get()
+	if (!source) {
+		operation = null
+		return
+	}
+	const filename = getDownloadFileName(file.value.name)
+	const playbackRate = player.playbackRate
+	const wet = reverbEffect?.wet.value ?? getWetMix(reverb.value)
 	isLoading.value = true
 	errorMessage.value = ''
+	player.stop()
+	isPlaying.value = false
+	let context: import('tone').OfflineContext | null = null
+	let renderPlayer: import('tone').Player | null = null
+	let filter: import('tone').Reverb | null = null
 	try {
-		const [{ Offline, Player, Reverb }, sourceDuration] = await Promise.all([
-			import('tone'),
-			getSourceDuration(),
-		])
-		const durationError = validateAudioDuration(sourceDuration)
-		if (durationError) {
-			errorMessage.value = durationError
-			return
-		}
-		const renderDuration = getRenderDuration(
-			sourceDuration,
-			getPlaybackRate(slowdown.value),
+		const Tone = await import('tone')
+		controller.signal.throwIfAborted()
+		// Explicit context keeps failed/cancelled renders away from the live preview context.
+		context = new Tone.OfflineContext(
+			source.numberOfChannels,
+			getRenderDuration(source.duration, playbackRate),
+			source.sampleRate,
 		)
-		const buffer = await Offline(
-			async () => {
-				const renderPlayer = new Player()
-				renderPlayer.playbackRate = getPlaybackRate(slowdown.value)
-				const filter = new Reverb({
-					decay: REVERB_DECAY_SECONDS,
-					wet: getWetMix(reverb.value),
-				}).toDestination()
-				renderPlayer.connect(filter)
-				await renderPlayer.load(sourceUrl.value)
-				renderPlayer.start()
-			},
-			renderDuration,
-			1,
-		)
-		const blob = btow(buffer as never)
+		renderPlayer = new Tone.Player({ context, url: source, playbackRate })
+		filter = new Tone.Reverb({
+			context,
+			decay: REVERB_DECAY_SECONDS,
+			preDelay: REVERB_PREDELAY_SECONDS,
+			wet,
+		}).toDestination()
+		renderPlayer.connect(filter)
+		await filter.ready
+		controller.signal.throwIfAborted()
+		renderPlayer.start(0)
+		const buffer = await context.render()
+		controller.signal.throwIfAborted()
+		const audio = buffer.get()
+		if (!audio) throw new Error('No rendered audio')
+		const blob = btow(audio)
 		const downloadUrl = URL.createObjectURL(new Blob([blob], { type: 'audio/wav' }))
 		const link = document.createElement('a')
 		link.href = downloadUrl
-		link.download = getDownloadFileName(file.value.name)
+		link.download = filename
 		link.click()
-		URL.revokeObjectURL(downloadUrl)
+		// Give the browser a task to consume the download before revoking the URL.
+		setTimeout(() => URL.revokeObjectURL(downloadUrl), 0)
 	} catch {
-		errorMessage.value = 'The WAV could not be rendered. Try a shorter audio file.'
+		if (!disposed && !controller.signal.aborted)
+			errorMessage.value = 'The WAV could not be rendered. Try a shorter audio file.'
 	} finally {
+		renderPlayer?.dispose()
+		filter?.dispose()
+		context?.dispose()
+		operation = null
 		isLoading.value = false
 	}
 }
@@ -439,6 +473,8 @@ function reset() {
 	reverb.value = DEFAULT_REVERB_LEVEL
 }
 onBeforeUnmount(() => {
+	disposed = true
+	cancelOperation()
 	disposePlayer()
 	releaseSourceUrl()
 })

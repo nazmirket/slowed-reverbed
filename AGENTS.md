@@ -1,130 +1,79 @@
-# Slowed & Reverbed Maker repository workflow
+# Slowed & Reverbed repository workflow
 
-This is a client-only Nuxt app. `pages/` owns the interface and `utils/` owns
-audio behavior and tests. Preserve browser-only audio execution, preview and
-export cleanup, and the guarantee that audio files never leave the browser.
-The static build is served by unprivileged Nginx using `docker/nginx.conf`.
+A statically generated Nuxt app with browser-only audio processing. Audio files
+must never leave the browser. `pages/index.vue` owns session state, preview,
+rendering and cancellation; `utils/audio.ts` owns pure validation and calculations.
+Nginx serves `.output/public` using `docker/nginx.conf`. Preserve product limits,
+preview/export parity, stereo channels and resource cleanup.
 
-Selected specialists cover frontend, infrastructure and search visibility.
+## Harness and responsibilities
 
-## Harness ownership
+The public release and platform digests are pinned in `.mirket/release.json`.
+CI and `pnpm agents:check` consume that same pin. See
+[the harness guide](docs/harness.md) for provenance, setup, activation and recovery.
+`AGENTS.md` owns project requirements; `CLAUDE.md` imports it.
+`.mirket/project.json` selects shared expertise for both hosts: project-foundation
+plus frontend, infrastructure and search visibility. Mirket owns `.agents/skills/`
+and `.claude/skills/`; change selections and managed copies through its CLI.
+Global guidance owns planning, security, research and coordination methods.
 
-Mirket owns reviewed expertise, managed skill copies and its routed workers.
-`AGENTS.md` owns repository instructions; `CLAUDE.md` imports it. The manifest
-`.mirket/project.json` selects the same expertise for Codex Desktop and Claude
-Desktop Code. `.agents/skills/` and `.claude/skills/` are Mirket-managed copies,
-including integrity receipts and license notices; maintain them with the CLI.
-`project-foundation` supplies architecture, debugging, testing and release
-methods. Shared planning, security, research and coordination guidance comes
-from the global installation, not duplicate project copies.
+Before work, inspect current changes, relevant source owners, the manifest and
+available tools; run `pnpm agents:check`. Investigate failures rather than
+silencing them. Read installed `skill-catalog` for substantive selection, then
+only the lead and useful supporting guidance. Use current command help for
+unfamiliar CLI options. Use `mirket setup`, `doctor` and `update` for harness
+operations. Inspect project registration before initializing or relocating.
 
-On a new machine, install the published CLI from
-[codemirket/harness](https://github.com/codemirket/harness/releases), then run:
+Work directly unless independent assignments materially help. Follow installed
+routing contracts for Mirket workers; native tools retain host permissions.
+Use one existing project/task record for substantial resumable work. Keep private
+execution history, credentials, local client configuration and runtime caches out
+of source. Authoritative product facts belong in their owning files. This stateless
+app does not require Mem0 or LangGraph in its application runtime.
 
-```sh
-mirket setup --target all --yes
-mirket project init --project "$PWD" --target all
-mirket project plan --project "$PWD"
-mirket project sync --project "$PWD" --prune
-mirket project doctor --project "$PWD"
-```
+## Design and verification
 
-The reviewed release is [mirket-v1.0.5](https://github.com/codemirket/harness/releases/tag/mirket-v1.0.5),
-published 2026-10-19T07:23:26Z. Resolve future releases by publication time,
-not the largest historical version. Use `mirket update --check` to inspect and
-`mirket update` to update; synchronize and verify each affected project afterward.
-Update the CI release and SHA-256 together from the published asset metadata.
-Do not substitute an unreviewed source build or bypass a digest mismatch.
+Use the installed `interface-design/references/image-to-code.md` contract for
+visual work, including its current medium-specific budgets. Existing inspected
+screens may govern focused repairs. `design/tokens.json` owns the palette;
+`pnpm design:tokens` compiles it through the installed Mirket design package.
+Commit generated `assets/css/tokens.css`; ordinary builds need no design service.
+Use Playwright for the live app and inspect captures, interactions and reduced
+motion at representative widths. Select other production tools only for actual
+artifact deliverables; do not add packages to satisfy a checklist.
 
-Before work, inspect current changes, this guide, affected source owners, the
-manifest and available tools. Run `pnpm agents:check`. A failed check is a
-finding to investigate; do not overwrite changed managed files to hide it.
-Use `mirket project add/remove` to change selections, then inspect the plan,
-sync with `--prune` and review the diff. Keep only expertise justified by an
-existing project boundary. Do not add competing rule directories, skill
-installers, repository MCP servers or model pins.
-
-## Execution and evidence
-
-Select guidance from the deliverable and affected boundary. Read the relevant
-skill and only useful references; use `skill-catalog` when discovery is needed.
-The catalog is advisory, not exhaustive. User choices, project requirements,
-source rights and host permissions govern tool use and external effects.
-
-Handle routine work directly. When continuity, recovery or coordination needs
-durable state, reuse a sufficient existing record or use Mirket task tools;
-retain decisions, source pointers, acceptance evidence and a meaningful failure
-probe. Do not create a parallel tracker or require task ceremony for every edit.
-
-Delegate only when independent work materially helps or it is requested. For
-Mirket-owned workers, read `agent-coordination/references/model-routing.md`
-through `skill_read`, inspect `capability_plan`, discover `model_registry`, and
-preview `route_task`. Declare only actual deliverables in `task_needs`; use
-`spawn_subagent` with bounded briefs, disjoint ownership and the resolved tool
-scope. Read the resolved guidance and verification contract and integrate the
-actual output. Native host tools and native subagents remain host-owned;
-Mirket does not intercept them or grant additional permissions.
-
-Design work follows image-to-code. Read the installed `interface-design`
-`references/image-to-code.md` contract. Inspect a supplied target or create one
-with the host image model before implementation. If no usable image model is
-available, compose a minimal version directly in code, render and inspect it,
-then freeze that composition before expanding it. Retain the target, provenance
-and viewport/state so comparisons are reproducible. Gate composition, typography,
-assets, responsive layout, behavior and requested motion against the frozen
-target; a still image cannot prove animation. Inspect normal-motion frames and
-reduced-motion behavior. Allow at most two correction rounds and ten minutes
-per bounded composition; report unresolved defects at the limit. Do not restart
-sample campaigns to reset the budget. Use the project's application gates below
-for implementation evidence; tool readiness and screenshots alone are not
-acceptance.
-
-For Mirket design production, use the single `design` package's reported
-workspace and compile Style Dictionary tokens first. Route live UI to
-Playwright, editable canvases to official Penpot MCP, diagrams to Kroki,
-video to HyperFrames lint → snapshot → render, paged work to Typst, vectors
-to SVG/resvg, SVG hygiene to SVGO, raster preparation to Sharp, static Flexbox
-graphics to Satori/resvg and comparable pixels to Odiff. Inspect saved outputs.
-Package installation, runtime readiness, invocation and useful output are
-separate facts; use native project tools for application verification.
-
-Before delivery, run the affected application gates below and `pnpm agents:check`.
-That harness gate runs the installed doctor plus real missing/tampered-skill
-probes for both targets. CI provisions a digest-verified published Linux CLI
-and checks committed files without synchronizing them first. A green doctor
-does not prove desktop activation, authenticated worker execution or application
-correctness. In a fresh desktop session, invoke a Mirket tool and inspect its
-result before claiming that host is activated.
-
-Keep secrets, local host configuration, task/runtime caches and the transient
-`.mirket/project.lock` mutex out of commits. Preserve unrelated work. Commits,
-pushes, releases, external messages and production changes need user authority;
-a role, registration or passing test does not supply it.
-
-## Application gates
-
-Use Node.js 22–24 and pnpm 10.33.0 as pinned in `package.json`.
+Use Node.js 22–24 and pnpm 10.33.0. Required gates:
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm agents:check
 pnpm check
 pnpm audit
 pnpm generate
+pnpm exec playwright install chromium
+pnpm test:browser
 ```
 
-`check` runs lint, type checks and audio utility tests. For audio/UI changes,
-exercise file selection, preview, processing, WAV export, cancellation/error
-recovery and resource cleanup in a real browser. Static generation alone does
-not establish audio correctness or privacy.
+Browser tests exercise real decoding, preview, stereo WAV export, corrupt input,
+cancellation and object-URL cleanup. Additional changes require relevant failure
+and recovery probes. Cancellation discards results; native decoding/rendering
+may finish before resources can be released. Do not claim immediate interruption.
 
-Use Podman for local container checks:
+For container changes, use an unused loopback port, isolated Compose name and
+unique image tag (a project name alone does not isolate the image tag):
 
 ```sh
 podman compose config --quiet
-APP_PORT=9334 podman compose -p slowed-reverbed-validation up --build -d
-curl --fail http://127.0.0.1:9334/healthz
+APP_PORT=9336 IMAGE_TAG=migration-validation podman compose -p slowed-reverbed-validation up --build -d
+curl --fail http://127.0.0.1:9336/healthz
 podman compose -p slowed-reverbed-validation down
 ```
 
-Choose an unused loopback port and isolated project name. Keep production
-service replacement separate from disposable validation.
+A CLI doctor, installation receipt, hash, worker verdict or render is not
+application acceptance or desktop activation. Call `runtime_status` through each
+actual client and inspect package invocation separately. Record untested platforms
+and baseline failures. Do not lower gates to obtain a green result.
+
+Preserve unrelated work. Commits, pushes, PRs, external messages, production
+changes, destructive operations and new production dependencies need user
+authority. Passing checks and registration do not grant that authority.
