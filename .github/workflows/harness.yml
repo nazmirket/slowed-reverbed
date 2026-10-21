@@ -19,15 +19,15 @@ jobs:
           package-manager-cache: false
       - name: Verify and install the published harness
         run: |
-          MIRKET_RELEASE="$(node -p "'mirket-v' + require('./.mirket/release.json').version")"
+          MIRKET_URL="$(node -p "require('./.mirket/release.json').assets.find(a => a.target === 'x86_64-unknown-linux-gnu').url")"
           MIRKET_SHA256="$(node -p "require('./.mirket/release.json').assets.find(a => a.target === 'x86_64-unknown-linux-gnu').sha256")"
           mkdir -p "$RUNNER_TEMP/mirket-runtime/bin"
           curl --fail --location --proto '=https' --tlsv1.2 \
-            "https://github.com/codemirket/harness/releases/download/$MIRKET_RELEASE/mirket-x86_64-unknown-linux-gnu" \
+            "$MIRKET_URL" \
             --output "$RUNNER_TEMP/mirket-runtime/bin/mirket"
           printf '%s  %s\n' "$MIRKET_SHA256" "$RUNNER_TEMP/mirket-runtime/bin/mirket" | sha256sum --check --strict
           chmod +x "$RUNNER_TEMP/mirket-runtime/bin/mirket"
-          "$RUNNER_TEMP/mirket-runtime/bin/mirket" setup --target all --no-packages --yes
+          "$RUNNER_TEMP/mirket-runtime/bin/mirket" setup --target all --yes
           echo "$HOME/.mirket/bin" >> "$GITHUB_PATH"
       - name: Check committed adoption and failure probes
         run: npm run agents:check

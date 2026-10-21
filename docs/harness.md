@@ -1,110 +1,153 @@
-# Harness adoption and recovery
+# Mirket 0.0.1 setup and recovery
 
-The reviewed public release is [Mirket 1.0.11](https://github.com/codemirket/harness/releases/tag/mirket-v1.0.11),
-published 2026-10-20 at 07:01:43 UTC. `.mirket/release.json` is the single
-machine-readable pin for public platform binaries, compiled source and catalog.
-The asset digests were checked against the public release API and
-[release manifest](https://github.com/codemirket/harness/releases/download/mirket-v1.0.11/mirket-release.json).
-These establish artifact integrity against that publisher, not an independent signature.
+This project pins the [official Mirket 0.0.1 release](https://github.com/codemirket/harness/releases/tag/mirket-v0.0.1),
+published 2026-10-21 at 14:34:24 UTC. `.mirket/release.json` records the three
+public binary URLs and SHA-256 digests from the release's
+[manifest](https://github.com/codemirket/harness/releases/download/mirket-v0.0.1/mirket-release.json),
+plus the published compiled-source fingerprint and the verified embedded-catalog
+fingerprint. These establish integrity against the publisher, not an independent
+signature or application correctness. CI and `pnpm agents:check` consume this pin.
 
-## Setup and upgrades
+## Ownership map
 
-Download the target-specific published CLI and verify its SHA-256 against the
-pin before execution. On a new machine:
+| Item                                              | Owner and status                                                                 |
+| ------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `AGENTS.md`                                       | Project-specific source and verification rules for both hosts                    |
+| `CLAUDE.md`                                       | Single import of `AGENTS.md`; no duplicate Claude playbook                       |
+| `.mirket/project.json`                            | Mirket selection for Codex and Claude                                            |
+| `.agents/skills/`, `.claude/skills/`              | Mirket-managed, versioned copies; change through `mirket project`                |
+| `.mirket/release.json`, `scripts/harness*.mjs`    | Public release pin and executable, source, catalog and managed-copy checks       |
+| `.github/workflows/harness.yml`                   | Linux harness gate; `.github/workflows/application.yml` owns application gates   |
+| `scripts/design-tokens.mjs`, `design/tokens.json` | Project palette and Style Dictionary compilation through selected design package |
+| `README.MD`, application source and tests         | Current product behavior and user journeys                                       |
+
+There are no separate repository role catalogs, prompts, agent setup scripts or
+nested instruction files. Local locks, runtime caches, host MCP configuration
+and private task history stay outside source. Do not create a competing agent
+framework or edit Mirket receipts to silence drift.
+
+## Install and register
+
+Follow the official [agent installation guide](https://github.com/codemirket/harness/blob/main/docs/agent-installation.md).
+Verify the 0.0.1 asset for the host OS and architecture against its release
+manifest before execution. Keep the managed executable and Mirket application
+data under `~/.mirket`; preserve unrelated host settings. The 0.0.1 registry is a
+fresh baseline and does not import pre-0.0.1 project identities or durable state.
+A healthy installed 0.0.1 does not need replacement.
+
+Check all pages of `mirket project list --json --offset N --limit 10` before
+registering a root. For a new checkout without `.mirket/project.json`, select the
+actual hosts and expertise through supported commands:
 
 ```sh
+mirket setup --dry-run --target all
 mirket setup --target all --yes
-mirket project list --json
 mirket project init --project "$PWD" --target all
+mirket project add --project "$PWD" --profile project-foundation
+mirket project add --project "$PWD" --skill frontend-engineering
+mirket project add --project "$PWD" --skill infrastructure-engineering
+mirket project add --project "$PWD" --skill search-visibility
 mirket project plan --project "$PWD"
-mirket project sync --project "$PWD" --prune
+mirket project sync --project "$PWD"
 mirket project doctor --project "$PWD"
-pnpm agents:check
 ```
 
-Use existing registration when present. If an original directory was renamed,
-inspect `mirket project relocate --help` and validate its identity; do not replace
-registration with a copied checkout to hide relocation errors.
+The `project-foundation` profile supplies architecture review, debugging, test
+design and release operations; the three specialist skills match the Nuxt UI,
+static hosting and public search surface. Do not add `portable-foundation` when
+shared host guidance is installed. If a checkout already has
+`.mirket/project.json` but the fresh registry has no entry for its root, use
+`mirket project register --project "$PWD"` to create a new 0.0.1 identity, then
+plan, sync and doctor. `project init` rejects an existing config. Inspect any
+managed-copy conflict and preserve unique project rules before resolving it.
+Do not use pruning or delete a receipt as a reset.
 
-For an upgrade, inspect `mirket info --json`, `mirket update --check --json`, the
-latest stable public release by publication date, and release notes. Pin reviewed
-asset digests and fingerprints together. Run `mirket update --json` only when
-installed content needs updating, then plan/sync/doctor. Do not manually overwrite
-managed skills or rebuild an unreviewed substitute. Preserve edited managed files
-and resolve their conflict before synchronization.
+## Verify activation and use
 
-`pnpm agents:check` rejects wrong platform/binary/source/catalog identities and
-runs real missing/tampered-skill probes in disposable directories for both hosts.
-It does not modify the registered project to run those probes.
+Run `mirket doctor --json`, `mirket catalog check --json` and `pnpm agents:check`.
+Call Mirket `runtime_status` inside each actual desktop client and compare its
+version, executable, source and catalog fingerprints with `mirket info --json`
+and the release pin. Require `installed_binary.matches_process: true`. A CLI
+process or new test session does not prove an existing desktop MCP connection
+reloaded. If stale, reconnect that client and repeat. Inspect configured
+executable paths without copying private configuration into source.
 
-## Activation and package verification
+When optional `design` or `agent-runtime` packages are selected, selection is
+not readiness or proof of useful output. Check `mirket package status --json`
+and probe a needed package before an actual operation. The
+project's concrete design operation is `pnpm design:tokens`: it stages
+`design/tokens.json` in the selected design workspace, invokes Style Dictionary,
+and saves `assets/css/tokens.css`. `pnpm design:tokens --check` compares the saved
+CSS with the source. Ordinary builds use committed CSS and need no design
+service. For UI changes, inspect the live browser journey and screenshots at
+representative widths and reduced motion. For other visual deliverables, use
+OpenPencil for editable design, Kroki for diagrams (Excalidraw explicitly when
+needed), Typst for paged work, SVG/resvg for vectors, Sharp for raster preparation
+and Odiff for comparable pixels. Inspect each saved result. Encoded video is not
+bundled.
 
-Inside **each** actual Codex or Claude client, call Mirket `runtime_status`.
-Compare `process.version`, `process.target`, `process.executable_sha256`,
-`process.source_sha256`, `catalog.sha256` and `installed_binary.sha256` with the
-pin; require `installed_binary.matches_process: true`. If stale, reconnect that
-client's MCP connection and repeat. Terminal `mirket info` and a newly spawned
-SDK session cannot attest an existing desktop session.
+With selected `agent-runtime`, make focused Mem0 reads for recurring decisions;
+store only verified reusable facts with provenance and supersession. Project
+source remains the owner of product facts. Mirket task records track coordination;
+LangGraph checkpoints belong to Mirket-owned workers. After interruption,
+inspect `workflow_status` and resume the original eligible run without resetting
+budgets or replaying uncertain effects. Native host sessions use their own
+recovery. This browser-only app needs neither package in its application runtime.
 
-Run `mirket doctor --json` and `mirket catalog check`. Inspect the exact executable
-paths configured in each client separately from the terminal's resolved path.
-For selected packages use `mirket package status --json`, then
-`mirket package probe design --schemas --json`, then an actual required operation.
-A probe only establishes startup/discovery. Inspect operation output and its
-runtime fingerprint as well as the saved artifact.
+## Project checks
 
-The current design workflow uses Style Dictionary through `pnpm design:tokens`.
-Its script discovers the installed workspace, stages this project's canonical
-palette and copies the compiled CSS into the app. `pnpm design:tokens --check`
-verifies that committed output still matches. Local app development and CI use
-committed CSS and do not need Podman or the optional design package.
-No editable canvas, diagram, video, paged document or new vector artwork is part
-of this app migration, so Penpot, Kroki, HyperFrames, Typst and vector production
-are not required acceptance boundaries. Existing assets remain in place.
+Use Node.js 22–24 and pnpm 10.33.0. Run the project gates without lowering their
+thresholds:
 
-## Recovery and ownership
+```sh
+pnpm install --frozen-lockfile
+pnpm agents:check
+pnpm check
+pnpm audit
+pnpm generate
+pnpm exec playwright install chromium
+pnpm test:browser
+```
 
-Product code and managed skill copies are versioned. Inspect diffs before restoring
-files; do not discard unrelated edits. Regenerate the static output from the
-chosen source and frozen lockfile. Validate a disposable container before replacing
-a production service; production deployment requires separate authority.
+`pnpm agents:check` runs project doctor, entry-point and selection checks, real
+missing and tampered managed-file probes for both hosts, and release identity
+checks. It does not prove desktop activation or audio correctness. Browser tests
+cover decoding, preview, stereo WAV export, corrupt input, cancellation and
+object-URL cleanup. For bugs, keep a discriminating failure probe and rerun
+relevant gates. For docs, verify changed links and executable examples. The
+shared loop is observe, compare, diagnose, repair and recheck the actual result.
 
-Audio session state is intentionally ephemeral. Reload clears it; source files
-remain on the user's device. No database, persistent memory or application data
-migration is introduced. Cancelling processing suppresses late results and keeps
-new processing disabled until native work settles and cleanup completes. Metadata reading itself is cancellable
-and has a 15-second timeout before full decoding begins.
+### Container validation
 
-Mirket task state stays in Mirket's established local store. A binary rollback
-alone cannot downgrade schema-4 state. If a future update changes durable state,
-use the installed archive/restore help and release-specific procedure, then test
-restoration in an isolated supported destination before upgrading. This adoption
-started with 1.0.11 already installed and did not migrate or restore that state.
+For container changes, use an unused loopback port, isolated Compose name and
+unique image tag. A project name alone does not isolate the image tag:
 
-## Outstanding verification limits
+```sh
+podman compose config --quiet
+APP_PORT=9336 IMAGE_TAG=migration-validation podman compose -p slowed-reverbed-validation up --build -d
+curl --fail http://127.0.0.1:9336/healthz
+podman compose -p slowed-reverbed-validation down
+```
 
-**Claude live activation remains unverified.** Its configured executable was
-verified, but a `runtime_status` call must be made inside Claude's actual existing
-connection. Compare all pinned fingerprints and require
-`installed_binary.matches_process: true`; reconnect and repeat if stale. Neither
-Codex's successful call nor GitHub CI closes this gap.
+This validates a disposable container, not a production deployment.
 
-The Codex connection was observed at 1.0.11 with matching public executable,
-source and catalog fingerprints. The [Linux harness workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393197910)
-passed after runner provisioning was corrected to use supported `mirket setup`
-before checking installed-binary identity. The
-[initial application workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393064705)
-passed installation, lint, types, unit tests, static generation and browser tests
-on Node 22 and 24; its audit step failed on the advisories below. Matrix fail-fast
-is disabled so one failed job does not cancel another platform's evidence.
-Windows and non-Chromium browser execution remain unverified.
+## Recovery and known limits
 
-The dependency audit currently reports two high advisories in development tooling:
-[`node-forge@1.4.0`](https://github.com/advisories/GHSA-86w9-cpqp-85rv) via
-`listhen` and [`braces@3.0.3`](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)
-via `micromatch`/`globby`.
-At adoption time these were the latest published npm versions; the audit supplied
-no patched version. They are not copied into the Nginx static runtime, but their
-build/development exposure remains. `pnpm audit` and the CI audit gate remain
-unchanged and failing until upstream remediation is available. Reproduce with
-`pnpm audit` and trace ownership with `pnpm why node-forge braces`.
+Audio session state is ephemeral. Reload clears it; source files remain on the
+user's device. Cancellation suppresses late results and waits for native work to
+settle before cleanup. Metadata reading has a 15-second timeout before full
+decoding. Regenerate static output from source and the frozen lockfile.
+
+If registration reports a changed project identity, stop dependent durable
+operations. Inspect the canonical path and original directory identity; do not
+edit SQLite or bind a replacement checkout to an old namespace. Use supported
+`mirket project relocate` only for a verified rename of the original directory
+and only after checking its preconditions. Continue independent source work when
+safe. Keep private task state and credentials out of the repository.
+
+Historical evidence: the [1.0.11 Linux harness workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393197910)
+and [initial application workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393064705)
+were prior adoption checks. They do not establish 0.0.1 activation. The earlier
+audit reported high advisories in development tooling (`node-forge` and
+`braces`); run the current `pnpm audit` to establish current status. Claude live
+activation, Windows and non-Chromium browser execution require their own checks.

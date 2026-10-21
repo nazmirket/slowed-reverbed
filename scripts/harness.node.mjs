@@ -82,6 +82,27 @@ test('the installed harness matches the published binary and embedded content', 
 	verifyIdentity(JSON.parse(runtime.stdout), JSON.parse(read('.mirket/release.json')))
 })
 
+test('the release pin resolves only official assets for the selected tag', () => {
+	const pin = JSON.parse(read('.mirket/release.json'))
+	assert.equal(
+		pin.release_url,
+		`https://github.com/codemirket/harness/releases/tag/mirket-v${pin.version}`,
+	)
+	assert.deepEqual(pin.assets.map(asset => asset.target).sort(), [
+		'aarch64-apple-darwin',
+		'x86_64-pc-windows-msvc',
+		'x86_64-unknown-linux-gnu',
+	])
+	for (const asset of pin.assets) {
+		const suffix = asset.target.includes('windows') ? '.exe' : ''
+		assert.equal(
+			asset.url,
+			`https://github.com/codemirket/harness/releases/download/mirket-v${pin.version}/mirket-${asset.target}${suffix}`,
+		)
+		assert.match(asset.sha256, /^[a-f0-9]{64}$/)
+	}
+})
+
 test('matching versions cannot conceal replaced binary, source or catalog', () => {
 	const pin = JSON.parse(read('.mirket/release.json'))
 	const identity = {

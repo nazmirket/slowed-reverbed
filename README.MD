@@ -69,6 +69,7 @@ browser's Web Audio capabilities.
 ## Verify and build
 
 ```sh
+pnpm agents:check
 pnpm check
 pnpm audit
 pnpm generate
@@ -76,6 +77,7 @@ pnpm exec playwright install chromium
 pnpm test:browser
 ```
 
+`pnpm agents:check` verifies the pinned Mirket release and managed guidance.
 `pnpm check` runs lint, type checks, and unit tests. Browser tests cover preview,
 stereo export, cancellation, corrupt-input recovery and URL cleanup.
 `pnpm preview` serves the generated site on loopback port 9335. `pnpm generate` writes the
