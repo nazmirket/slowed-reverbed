@@ -1,5 +1,16 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
+
+async function openStudio(page: Page) {
+	await page.goto('/')
+	await page.waitForFunction(
+		() =>
+			Boolean(
+				(document.querySelector('#__nuxt') as (HTMLElement & { __vue_app__?: unknown }) | null)
+					?.__vue_app__,
+			),
+	)
+}
 
 // Independent PCM fixture: different frequencies in left and right channels.
 function stereoWav() {
@@ -60,7 +71,7 @@ test('preview, stereo export, cleanup and corrupt-file recovery stay local', asy
 		}
 		Object.assign(window, { activeObjectUrls: active })
 	})
-	await page.goto('/')
+	await openStudio(page)
 	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
 	await page.getByRole('button', { name: 'Create my version' }).click()
 	await expect(page.getByText('Your version is ready')).toBeVisible()
@@ -135,7 +146,7 @@ test('cancelled preparation cannot publish late success', async ({ page }) => {
 			})
 		}
 	})
-	await page.goto('/')
+	await openStudio(page)
 	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
 	await page.getByRole('button', { name: 'Create my version' }).click()
 	await page.waitForFunction(() => 'releaseDecode' in window)
@@ -173,7 +184,7 @@ test('cancelled metadata probe releases the UI and ignores late metadata', async
 			},
 		})
 	})
-	await page.goto('/')
+	await openStudio(page)
 	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
 	await page.getByRole('button', { name: 'Create my version' }).click()
 	await page.waitForFunction(() => 'releaseMetadata' in window)
@@ -201,7 +212,7 @@ test('decoded duration over the limit rejects a misleading short metadata readin
 		})
 		Object.assign(window, { restoreDecodedDuration: () => (spoofDuration = false) })
 	})
-	await page.goto('/')
+	await openStudio(page)
 	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
 	await page.getByRole('button', { name: 'Create my version' }).click()
 	await expect(page.locator('.error-message[role=alert]')).toContainText('20 minute')
@@ -231,7 +242,7 @@ test('cancelled export produces no download and the next export succeeds', async
 			return render.call(this)
 		}
 	})
-	await page.goto('/')
+	await openStudio(page)
 	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
 	await page.getByRole('button', { name: 'Create my version' }).click()
 	await expect(page.getByText('Your version is ready')).toBeVisible()
