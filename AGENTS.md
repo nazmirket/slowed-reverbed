@@ -1,6 +1,6 @@
 # Slowed & Reverbed agent workflow
 
-Mirket 0.0.1 supplies the shared method for Codex Desktop and Claude Desktop
+Mirket 0.0.2 supplies the shared method for Codex Desktop and Claude Desktop
 Code. This file owns project-specific rules; `CLAUDE.md` imports it. The release
 pin, setup and recovery procedure live in [docs/harness.md](docs/harness.md).
 
@@ -43,6 +43,9 @@ including representative widths and reduced motion. Use the selected Mirket
 `design` package for actual editable designs (OpenPencil), diagrams (Kroki;
 select Excalidraw explicitly), paged work (Typst), vectors (SVG/resvg), raster
 preparation (Sharp) or comparable pixels (Odiff). Inspect saved artifacts.
+Observational captures and saved-file exports do not inject or require tokens.
+Use `expect_match: true` for Odiff only when pixel equality is required; a completed
+comparison can otherwise report differences.
 Encoded video requires separately selected host tooling. With selected
 `agent-runtime`, recall relevant prior decisions through focused Mem0 reads and
 retain only verified stable facts with provenance and supersession.

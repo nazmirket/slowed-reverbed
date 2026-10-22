@@ -1,9 +1,9 @@
-# Mirket 0.0.1 setup and recovery
+# Mirket 0.0.2 setup and recovery
 
-This project pins the [official Mirket 0.0.1 release](https://github.com/codemirket/harness/releases/tag/mirket-v0.0.1),
-published 2026-10-21 at 14:34:24 UTC. `.mirket/release.json` records the three
+This project pins the [official Mirket 0.0.2 release](https://github.com/codemirket/harness/releases/tag/mirket-v0.0.2),
+published 2026-10-22T09:36:12Z. `.mirket/release.json` records the three
 public binary URLs and SHA-256 digests from the release's
-[manifest](https://github.com/codemirket/harness/releases/download/mirket-v0.0.1/mirket-release.json),
+[manifest](https://github.com/codemirket/harness/releases/download/mirket-v0.0.2/mirket-release.json),
 plus the published compiled-source fingerprint and the verified embedded-catalog
 fingerprint. These establish integrity against the publisher, not an independent
 signature or application correctness. CI and `pnpm agents:check` consume this pin.
@@ -28,12 +28,20 @@ framework or edit Mirket receipts to silence drift.
 
 ## Install and register
 
-Follow the official [agent installation guide](https://github.com/codemirket/harness/blob/main/docs/agent-installation.md).
-Verify the 0.0.1 asset for the host OS and architecture against its release
+Follow the official [agent installation guide](https://github.com/codemirket/harness/blob/mirket-v0.0.2/docs/agent-installation.md).
+Verify the 0.0.2 asset for the host OS and architecture against its release
 manifest before execution. Keep the managed executable and Mirket application
 data under `~/.mirket`; preserve unrelated host settings. The 0.0.1 registry is a
 fresh baseline and does not import pre-0.0.1 project identities or durable state.
-A healthy installed 0.0.1 does not need replacement.
+The 0.0.2 upgrade preserves existing 0.0.1 registrations and data. An installation
+matching the reviewed 0.0.2 pin needs no replacement.
+
+All registered projects share the per-user installed executable. Compare its
+source identity before any repair; coordinate release pins rather than restoring
+an older project pin over a newer global installation. Use `mirket update --plan`
+to inspect a verified candidate and `mirket update --activate` for an authorized
+upgrade that preserves saved selections and restores previously running groups.
+Then verify `runtime_status` through each actual client connection.
 
 Check all pages of `mirket project list --json --offset N --limit 10` before
 registering a root. For a new checkout without `.mirket/project.json`, select the
@@ -57,7 +65,7 @@ design and release operations; the three specialist skills match the Nuxt UI,
 static hosting and public search surface. Do not add `portable-foundation` when
 shared host guidance is installed. If a checkout already has
 `.mirket/project.json` but the fresh registry has no entry for its root, use
-`mirket project register --project "$PWD"` to create a new 0.0.1 identity, then
+`mirket project register --project "$PWD"` to register the current checkout, then
 plan, sync and doctor. `project init` rejects an existing config. Inspect any
 managed-copy conflict and preserve unique project rules before resolving it.
 Do not use pruning or delete a receipt as a reset.
@@ -85,6 +93,13 @@ OpenPencil for editable design, Kroki for diagrams (Excalidraw explicitly when
 needed), Typst for paged work, SVG/resvg for vectors, Sharp for raster preparation
 and Odiff for comparable pixels. Inspect each saved result. Encoded video is not
 bundled.
+
+Compile tokens for dependent production and reference their outputs in authored
+source. Observational captures and saved-file exports preserve existing sources
+without injecting or requiring tokens. Odiff reports completed comparisons and
+whether pixels match separately; request `expect_match: true` when equality is
+an acceptance requirement. Inspect applicable design axes and record why any
+axis is irrelevant; keep all affected application gates.
 
 With selected `agent-runtime`, make focused Mem0 reads for recurring decisions;
 store only verified reusable facts with provenance and supersession. Project
@@ -147,7 +162,7 @@ safe. Keep private task state and credentials out of the repository.
 
 Historical evidence: the [1.0.11 Linux harness workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393197910)
 and [initial application workflow](https://github.com/nazmirket/slowed-reverbed/actions/runs/39393064705)
-were prior adoption checks. They do not establish 0.0.1 activation. The earlier
+were prior adoption checks. They do not establish current-release activation. The earlier
 audit reported high advisories in development tooling (`node-forge` and
 `braces`); run the current `pnpm audit` to establish current status. Claude live
 activation, Windows and non-Chromium browser execution require their own checks.
