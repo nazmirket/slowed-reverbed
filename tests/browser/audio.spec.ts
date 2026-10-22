@@ -124,6 +124,43 @@ test('preview, stereo export, cleanup and corrupt-file recovery stay local', asy
 	expect(unexpectedRequests).toEqual([])
 })
 
+test('preview sends audible samples through the browser audio output', async ({ page }) => {
+	await page.addInitScript(() => {
+		const connect = AudioNode.prototype.connect
+		Object.defineProperty(AudioNode.prototype, 'connect', {
+			value: function (this: AudioNode, ...args: unknown[]) {
+				const result = Reflect.apply(connect, this, args)
+				if (args[0] instanceof AudioDestinationNode) {
+					const analyser = this.context.createAnalyser()
+					Reflect.apply(connect, this, [analyser])
+					Object.assign(window, { previewAnalyser: analyser })
+				}
+				return result
+			},
+		})
+		let peak = 0
+		setInterval(() => {
+			const analyser = (window as unknown as { previewAnalyser?: AnalyserNode })
+				.previewAnalyser
+			if (!analyser) return
+			const samples = new Float32Array(analyser.fftSize)
+			analyser.getFloatTimeDomainData(samples)
+			for (const sample of samples) peak = Math.max(peak, Math.abs(sample))
+			Object.assign(window, { previewPeak: peak })
+		}, 10)
+	})
+	await page.goto('/')
+	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
+	await page.getByRole('button', { name: 'Create my version' }).click()
+	await expect(page.getByText('Your version is ready')).toBeVisible()
+	await page.getByRole('button', { name: 'Play preview' }).click()
+	await expect
+		.poll(() =>
+			page.evaluate(() => (window as unknown as { previewPeak?: number }).previewPeak ?? 0),
+		)
+		.toBeGreaterThan(0.01)
+})
+
 test('cancelled preparation cannot publish late success', async ({ page }) => {
 	await page.addInitScript(() => {
 		const decode = AudioContext.prototype.decodeAudioData
@@ -146,6 +183,71 @@ test('cancelled preparation cannot publish late success', async ({ page }) => {
 	await expect(page.getByRole('button', { name: 'Create my version' })).toBeEnabled()
 	await expect(page.getByText('Your version is ready')).not.toBeVisible()
 	await expect(page.locator('.error-message[role=alert]')).not.toBeVisible()
+})
+
+test('cancelled metadata probe releases the UI and ignores late metadata', async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		const NativeAudio = window.Audio
+		let first = true
+		class PendingAudio extends EventTarget {
+			duration = 0.5
+			src = ''
+			preload = ''
+			removeAttribute() {
+				this.src = ''
+			}
+			load() {}
+		}
+		Object.assign(window, {
+			Audio: function () {
+				if (!first) return new NativeAudio()
+				first = false
+				const pending = new PendingAudio()
+				Object.assign(window, { releaseMetadata: () => pending.dispatchEvent(new Event('loadedmetadata')) })
+				return pending
+			},
+		})
+	})
+	await page.goto('/')
+	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
+	await page.getByRole('button', { name: 'Create my version' }).click()
+	await page.waitForFunction(() => 'releaseMetadata' in window)
+	await page.getByRole('button', { name: 'Cancel processing' }).click()
+	await expect(page.getByRole('button', { name: 'Create my version' })).toBeEnabled()
+	await page.evaluate(() =>
+		(window as unknown as { releaseMetadata: () => void }).releaseMetadata(),
+	)
+	await expect(page.getByText('Your version is ready')).not.toBeVisible()
+	await page.getByRole('button', { name: 'Create my version' }).click()
+	await expect(page.getByText('Your version is ready')).toBeVisible()
+})
+
+test('decoded duration over the limit rejects a misleading short metadata reading', async ({
+	page,
+}) => {
+	await page.addInitScript(() => {
+		const original = Object.getOwnPropertyDescriptor(AudioBuffer.prototype, 'duration')!
+		let spoofDuration = true
+		Object.defineProperty(AudioBuffer.prototype, 'duration', {
+			configurable: true,
+			get() {
+				return spoofDuration ? 20 * 60 + 1 : original.get!.call(this)
+			},
+		})
+		Object.assign(window, { restoreDecodedDuration: () => (spoofDuration = false) })
+	})
+	await page.goto('/')
+	await page.getByLabel('Audio source file', { exact: true }).setInputFiles(stereoWav())
+	await page.getByRole('button', { name: 'Create my version' }).click()
+	await expect(page.locator('.error-message[role=alert]')).toContainText('20 minute')
+	await expect(page.getByText('Your version is ready')).not.toBeVisible()
+	await page.evaluate(() =>
+		(window as unknown as { restoreDecodedDuration: () => void }).restoreDecodedDuration(),
+	)
+	await page.getByRole('button', { name: 'Create my version' }).click()
+	await expect(page.getByText('Your version is ready')).toBeVisible()
 })
 
 test('cancelled export produces no download and the next export succeeds', async ({
