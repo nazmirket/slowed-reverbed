@@ -72,12 +72,13 @@ browser's Web Audio capabilities.
 pnpm check
 pnpm audit
 pnpm generate
-pnpm exec playwright install chromium
 pnpm test:browser
 ```
 
 `pnpm check` runs lint, type checks, and unit tests. Browser tests cover preview,
 stereo export, cancellation, corrupt-input recovery and URL cleanup.
+They use the Chromium selected by the active Mirket profile and launch the preview
+with the same Node executable as Playwright.
 `pnpm preview` serves the generated site on loopback port 9335. `pnpm generate` writes the
 static site to `.output/public/`, ready for a static host. For audio or interface
 changes, also test file selection, preview, rendering, download, and error
