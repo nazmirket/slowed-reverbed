@@ -17,7 +17,7 @@ Use Node.js 22–24 and pnpm 10.33.0 for these application gates when their veri
 ```sh
 pnpm install --frozen-lockfile
 pnpm check
-pnpm audit
+pnpm run audit
 pnpm generate
 pnpm test:browser
 ```

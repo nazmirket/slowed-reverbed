@@ -70,13 +70,14 @@ browser's Web Audio capabilities.
 
 ```sh
 pnpm check
-pnpm audit
+pnpm run audit
 pnpm generate
 pnpm test:browser
 ```
 
 `pnpm check` runs lint, type checks, and unit tests. Browser tests cover preview,
 stereo export, cancellation, corrupt-input recovery and URL cleanup.
+The audit checks every production dependency and high-severity build-tool advisories.
 They use the Chromium selected by the active Mirket profile and launch the preview
 with the same Node executable as Playwright. GitHub CI uses the Chromium installed
 by its Playwright setup step.
