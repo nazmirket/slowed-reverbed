@@ -1,78 +1,28 @@
-# Slowed & Reverbed agent workflow
+# Slowed & Reverbed — Mirket project guidance
 
-Mirket 0.0.2 supplies the shared method for Codex Desktop and Claude Desktop
-Code. This file owns project-specific rules; `CLAUDE.md` imports it. The release
-pin, setup and recovery procedure live in [docs/harness.md](docs/harness.md).
+Use the installed, verified absolute `bin/mirket` launcher and its Pi Durable host as the sole agent host and effect authority. Select this repository as the project; do not treat a launcher bound to another project as activation here. The host's selected skills and tools supply general methods. Do not install another agent, call an ambient agent executable, copy host configuration into this repository or edit account-wide settings to repair a project binding. Use only explicitly selected MCP tools and verified local executables; check actual capabilities before depending on them.
 
-## Product boundaries
+## Product and source owners
 
-This is a statically generated Nuxt app with browser-only audio processing.
-Audio files must never leave the browser. `pages/index.vue` owns session state,
-preview, rendering and cancellation; `utils/audio.ts` owns pure validation and
-calculations; `utils/audio-metadata.ts` owns cancellable metadata checks. Nginx
-serves `.output/public` using `docker/nginx.conf`. Preserve product limits,
-preview/export parity, stereo channels, error recovery and resource cleanup.
-Cancellation discards late results; native decoding or rendering may finish
-before resources can be released. Do not promise immediate interruption.
+This Nuxt app generates a static site and processes audio entirely in the browser. Audio files must never leave the browser. `pages/index.vue` owns file selection, session state, preview, rendering and cancellation; `utils/audio.ts` owns pure validation and calculations; `utils/audio-metadata.ts` owns cancellable metadata checks. Nginx serves `.output/public` via `docker/nginx.conf`. Preserve the documented size/duration limits, preview/export parity, stereo channels, error recovery and resource cleanup. Cancellation discards late results; native decoding or rendering can finish before resources are released, so do not promise immediate interruption.
 
-## Work in this repository
+Inspect Git status and the affected implementation and consumers before editing. Preserve unrelated work, local user data, credentials, conversations, grants and recovery evidence. For a bug, reproduce a discriminating failure where practical, fix its owner and rerun the affected check. Update the owning documentation when behavior changes. Use Mirket's selected skills only where relevant; do not duplicate general skill instructions in this repository.
 
-Inspect current changes, the affected source and consumers, `.mirket/project.json`
-and available tools before editing. Run `pnpm agents:check` and diagnose failures.
-Use installed Mirket guidance selectively for the affected boundary. Keep routine
-work direct; use one durable task only when continuity, recovery or coordination
-helps. For bugs, reproduce the symptom when practical, test a discriminating
-cause, fix its owner, and rerun the probe and affected gates. For reviews, trace
-changed behavior to consumers and report actionable source evidence. Update the
-owning documentation when behavior or commands change.
+## Design and verification
 
-`.mirket/project.json` selects `project-foundation`, frontend engineering,
-infrastructure engineering and search visibility for both hosts. Mirket manages
-`.agents/skills/` and `.claude/skills/`; change selections with `mirket project`
-commands, inspect the plan, then sync and doctor. Do not hand-edit managed copies
-or receipts. Global installed guidance owns general planning, security,
-documentation, design, context and coordination methods. Mirket-owned workers,
-when justified, use its routed spawner and LangGraph checkpoints. Native host
-sessions keep their own lifecycle. Do not launch paid workers to demonstrate
-adoption or change a chosen provider, model or budget.
+`design/tokens.json` owns the palette and `assets/css/tokens.css` is its committed compiled output. When tokens change, invoke the selected Mirket `design_tokens` operation on the exact saved source revision with `format: "css"`, compare its output with the CSS consumer, and commit both. The build consumes the committed CSS; it does not require a design tool at install time. Inspect actual rendered pixels and behavior for visual changes. Use the selected project browser route for live UI tests, including representative widths and reduced motion when relevant; report missing coverage rather than substituting an ambient browser. Other Mirket design/video/MCP operations are available only when explicitly selected and verified for the task.
 
-For visual work, start from an inspected target and compare actual renders and
-behavior. Compile `design/tokens.json` with `pnpm design:tokens` before dependent
-rendering; commit `assets/css/tokens.css`. Use Playwright for the live interface,
-including representative widths and reduced motion. Use the selected Mirket
-`design` package for actual editable designs (OpenPencil), diagrams (Kroki;
-select Excalidraw explicitly), paged work (Typst), vectors (SVG/resvg), raster
-preparation (Sharp) or comparable pixels (Odiff). Inspect saved artifacts.
-Observational captures and saved-file exports do not inject or require tokens.
-Use `expect_match: true` for Odiff only when pixel equality is required; a completed
-comparison can otherwise report differences.
-Encoded video requires separately selected host tooling. With selected
-`agent-runtime`, recall relevant prior decisions through focused Mem0 reads and
-retain only verified stable facts with provenance and supersession.
-
-## Verification and authority
-
-Use Node.js 22–24 and pnpm 10.33.0. Keep these required gates and their coverage:
+Use Node.js 22–24 and pnpm 10.33.0 for these application gates when their verified executables and dependencies are available:
 
 ```sh
 pnpm install --frozen-lockfile
-pnpm agents:check
 pnpm check
 pnpm audit
 pnpm generate
-pnpm exec playwright install chromium
 pnpm test:browser
 ```
 
-Browser tests exercise real decoding, preview, stereo WAV export, corrupt input,
-cancellation and object-URL cleanup. Add relevant failure and recovery probes for
-changed behavior. Report advisory audit findings without weakening the gate. For
-container changes, use an unused loopback port, isolated Compose name and unique
-image tag; see [container validation](docs/harness.md#container-validation).
-Report unavailable checks and untested platforms.
+Do not install a browser solely to satisfy an agent-run check; report an absent
+selected browser/runtime instead. Browser tests exercise decoding, preview, stereo WAV export, corrupt input, cancellation and object-URL cleanup. Do not weaken tests or gates to mask an environment failure. For container changes, use an unused loopback port, isolated Compose project and unique image tag; a project name alone does not isolate the image tag. For example, with an authorized Podman/Compose installation: `podman compose config --quiet`, then `APP_PORT=9336 IMAGE_TAG=migration-validation podman compose -p slowed-reverbed-validation up --build -d`, check `http://127.0.0.1:9336/healthz`, and bring down only that disposable project. Container validation is separate from production deployment.
 
-Preserve unrelated work, application data, credentials, private execution
-history and host settings. Commits, pushes, PRs, external messages, production
-changes, destructive operations and new production dependencies require user
-authority. A receipt, hash, screenshot or worker verdict alone does not establish
-application correctness or desktop activation.
+Audio session state is ephemeral; reload clears it, and the original file stays on the user's device. Metadata reading has a 15-second timeout before full decoding. Rebuild static output from source and the frozen lockfile. Report unavailable checks and untested platforms. A receipt, hash, screenshot or agent verdict alone does not prove correctness. External effects and commits/pushes need the user's authority; this migration request explicitly authorizes its commit and push, not deployment or account-wide changes.

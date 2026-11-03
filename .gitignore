@@ -9,9 +9,10 @@ dist
 .DS_Store
 coverage
 
-# Local agent state (managed project skills remain versioned)
-.mirket/project.lock
-.claude/settings.local.json
+# Agent host state and historical local recovery artifacts stay outside source.
+.mirket/
+.agents/
+.claude/
 .codex/
 
 # Browser verification artifacts

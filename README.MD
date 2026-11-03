@@ -58,7 +58,7 @@ No database, API service, or account credentials are required to process audio.
 | `utils/audio-metadata.ts` | Cancellable metadata validation before full decoding |
 | `utils/*.test.ts` | Audio utility, timeout and cleanup regression tests |
 | `tests/browser/` | Real-browser audio journeys and failure probes |
-| `design/tokens.json` | Canonical palette, compiled by `pnpm design:tokens` |
+| `design/tokens.json` | Canonical palette; compile to `assets/css/tokens.css` with the selected Mirket `design_tokens` operation |
 | `public/` | Static assets and site metadata |
 | `docker/nginx.conf` | Static hosting and health endpoint |
 
@@ -69,7 +69,6 @@ browser's Web Audio capabilities.
 ## Verify and build
 
 ```sh
-pnpm agents:check
 pnpm check
 pnpm audit
 pnpm generate
@@ -77,7 +76,6 @@ pnpm exec playwright install chromium
 pnpm test:browser
 ```
 
-`pnpm agents:check` verifies the pinned Mirket release and managed guidance.
 `pnpm check` runs lint, type checks, and unit tests. Browser tests cover preview,
 stereo export, cancellation, corrupt-input recovery and URL cleanup.
 `pnpm preview` serves the generated site on loopback port 9335. `pnpm generate` writes the
@@ -121,9 +119,7 @@ Report reproducible bugs or suggest improvements through
 [GitHub Issues](https://github.com/nazmirket/slowed-reverbed/issues). Include your
 browser, input format, track duration, and the steps that reproduce the issue.
 
-[AGENTS.md](AGENTS.md) documents the Mirket workflow for Codex Desktop and Claude
-Desktop Code. Run `pnpm agents:check` alongside the application checks when
-working with an agent.
-
-See [harness adoption and recovery](docs/harness.md) for the pinned release,
-client activation checks, design workflow and outstanding dependency advisories.
+[AGENTS.md](AGENTS.md) documents project-specific guidance for the installed
+Mirket Pi Durable host. Its launcher and selected capabilities are verified in
+the local host profile, not installed or configured by this repository. Use the
+normal application checks above for code changes.

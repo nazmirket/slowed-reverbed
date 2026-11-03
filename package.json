@@ -11,14 +11,12 @@
 		"check": "pnpm lint && pnpm typecheck && pnpm test",
 		"dev": "nuxt dev",
 		"generate": "nuxt generate",
-		"lint": "eslint nuxt.config.ts playwright.config.ts vitest.config.ts eslint.config.mjs pages utils tests scripts",
+		"lint": "eslint nuxt.config.ts playwright.config.ts vitest.config.ts eslint.config.mjs pages utils tests",
 		"postinstall": "nuxt prepare",
 		"preview": "serve .output/public --listen tcp://127.0.0.1:9335",
 		"test": "vitest run",
 		"typecheck": "nuxt typecheck",
-		"agents:check": "mirket project doctor --project . && node --test scripts/harness.node.mjs",
-		"test:browser": "playwright test",
-		"design:tokens": "node scripts/design-tokens.mjs"
+		"test:browser": "playwright test"
 	},
 	"devDependencies": {
 		"@eslint/js": "10.0.1",

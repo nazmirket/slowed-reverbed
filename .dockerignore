@@ -9,10 +9,9 @@ pnpm-debug.log
 .DS_Store
 .agents
 .claude
+.codex
 .mirket
 AGENTS.md
-CLAUDE.md
-scripts/harness.node.mjs
 
 test-results
 playwright-report
